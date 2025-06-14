@@ -12,7 +12,7 @@
 
 static const char *TAG = "app_driver";
 
-chip::Protocols::InteractionModel::Status FanDelegateImpl::HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff)
+chip::Protocols::InteractionModel::Status OperationalStateDelegateImpl::HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff)
 {
     ESP_LOGI(TAG, "Step received value: %d %d %d", (uint8_t)aDirection, aWrap, aLowestOff);
 

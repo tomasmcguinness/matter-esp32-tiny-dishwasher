@@ -35,10 +35,10 @@ esp_err_t app_driver_init();
     }
 #endif
 
-class FanDelegateImpl:public chip::app::Clusters::FanControl::Delegate
+class OperationalStateDelegateImpl:public chip::app::Clusters::FanControl::Delegate
 {
 public:
-    FanDelegateImpl(uint16_t aEndpoint):Delegate(aEndpoint){}
+    OperationalStateDelegateImpl(uint16_t aEndpoint):Delegate(aEndpoint){}
 
     chip::Protocols::InteractionModel::Status HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff);
 };

@@ -105,8 +105,7 @@ extern "C" void app_main()
     node_t *node = node::create(&node_config, app_attribute_update_cb, app_identification_cb);
     ABORT_APP_ON_FAILURE(node != nullptr, ESP_LOGE(TAG, "Failed to create Matter node"));
 
-    static OperationalStateDelegateImpl fan_delegate(0);
-    //dish_washer_config.fan_control.delegate = &fan_delegate;
+    static OperationalStateDelegateImpl fan_delegate;
 
     dish_washer::config_t dish_washer_config;
     dish_washer_config.operational_state.delegate = &fan_delegate; // Set to nullptr if not using a delegate

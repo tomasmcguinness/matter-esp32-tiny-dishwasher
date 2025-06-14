@@ -14,7 +14,11 @@
 #include <app/clusters/operational-state-server/operational-state-server.h>
 #include <app/clusters/fan-control-server/fan-control-delegate.h>
 #include <protocols/interaction_model/StatusCode.h>
+
 typedef void *app_driver_handle_t;
+
+using namespace chip;
+using namespace chip::app::Clusters::OperationalState;
 
 esp_err_t app_driver_init();
 
@@ -35,10 +39,24 @@ esp_err_t app_driver_init();
     }
 #endif
 
-class OperationalStateDelegateImpl:public chip::app::Clusters::FanControl::Delegate
+class OperationalStateDelegateImpl:public chip::app::Clusters::OperationalState::Delegate
 {
 public:
-    OperationalStateDelegateImpl(uint16_t aEndpoint):Delegate(aEndpoint){}
+    OperationalStateDelegateImpl():Delegate(){}
 
-    chip::Protocols::InteractionModel::Status HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff);
+    //chip::Protocols::InteractionModel::Status HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff);
+
+    chip::app::DataModel::Nullable<uint32_t> GetCountdownTime();
+
+    CHIP_ERROR GetOperationalStateAtIndex(size_t index, GenericOperationalState & operationalState);
+
+    CHIP_ERROR GetOperationalPhaseAtIndex(size_t index, MutableCharSpan & operationalPhase);
+
+    void HandlePauseStateCallback(GenericOperationalError & err);
+
+    void HandleResumeStateCallback(GenericOperationalError & err);
+
+    void HandleStartStateCallback(GenericOperationalError & err);
+
+    void HandleStopStateCallback(GenericOperationalError & err);
 };

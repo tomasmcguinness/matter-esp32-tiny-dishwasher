@@ -1,10 +1,8 @@
 set(SRC_LIST       app_driver.cpp
                    app_main.cpp
-                   ${MATTER_SDK_PATH}/examples/all-clusters-app/all-clusters-common/src/static-supported-temperature-levels.cpp
-                   ${MATTER_SDK_PATH}/examples/all-clusters-app/all-clusters-common/src/tcc-mode.cpp
    )
 
-set(INCLUDE_DIRS_LIST   "${MATTER_SDK_PATH}/examples/all-clusters-app/all-clusters-common/include")
+#set(INCLUDE_DIRS_LIST   "${MATTER_SDK_PATH}/examples/all-clusters-app/all-clusters-common/include")
 
 idf_component_register(SRCS              ${SRC_LIST}
                       INCLUDE_DIRS       ${INCLUDE_DIRS_LIST}

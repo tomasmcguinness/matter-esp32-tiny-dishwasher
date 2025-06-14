@@ -10,17 +10,13 @@
 
 #include <esp_err.h>
 #include <esp_matter.h>
-
+#include <app-common/zap-generated/cluster-objects.h>
+#include <app/clusters/operational-state-server/operational-state-server.h>
+#include <app/clusters/fan-control-server/fan-control-delegate.h>
+#include <protocols/interaction_model/StatusCode.h>
 typedef void *app_driver_handle_t;
 
-/** Initialize the button driver
- *
- * This initializes the switch driver associated with the selected board.
- *
- * @return Handle on success.
- * @return NULL in case of failure.
- */
-app_driver_handle_t app_driver_button_init();
+esp_err_t app_driver_init();
 
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
 #define ESP_OPENTHREAD_DEFAULT_RADIO_CONFIG()                                           \
@@ -38,3 +34,11 @@ app_driver_handle_t app_driver_button_init();
         .storage_partition_name = "nvs", .netif_queue_size = 10, .task_queue_size = 10, \
     }
 #endif
+
+class FanDelegateImpl:public chip::app::Clusters::FanControl::Delegate
+{
+public:
+    FanDelegateImpl(uint16_t aEndpoint):Delegate(aEndpoint){}
+
+    chip::Protocols::InteractionModel::Status HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff);
+};

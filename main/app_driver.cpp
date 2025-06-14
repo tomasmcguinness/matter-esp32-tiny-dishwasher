@@ -9,13 +9,18 @@
 #include "bsp/esp-bsp.h"
 
 #include <app_priv.h>
-#include <app_reset.h>
 
-app_driver_handle_t app_driver_button_init()
+static const char *TAG = "app_driver";
+
+chip::Protocols::InteractionModel::Status FanDelegateImpl::HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff)
 {
-    /* Initialize button */
-    button_handle_t btns[BSP_BUTTON_NUM];
-    ESP_ERROR_CHECK(bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM));
+    ESP_LOGI(TAG, "Step received value: %d %d %d", (uint8_t)aDirection, aWrap, aLowestOff);
 
-    return (app_driver_handle_t)btns[0];
+    return chip::Protocols::InteractionModel::Status::Success;
+}
+
+esp_err_t app_driver_init()
+{
+    esp_err_t err = ESP_OK;
+    return err;
 }

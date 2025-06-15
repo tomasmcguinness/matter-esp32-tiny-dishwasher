@@ -105,45 +105,16 @@ extern "C" void app_main()
     node_t *node = node::create(&node_config, app_attribute_update_cb, app_identification_cb);
     ABORT_APP_ON_FAILURE(node != nullptr, ESP_LOGE(TAG, "Failed to create Matter node"));
 
-    static OperationalStateDelegateImpl fan_delegate;
+    static OperationalStateDelegate operational_state_delegate;
 
     dish_washer::config_t dish_washer_config;
-    dish_washer_config.operational_state.delegate = &fan_delegate; // Set to nullptr if not using a delegate
+    dish_washer_config.operational_state.delegate = &operational_state_delegate; // Set to nullptr if not using a delegate
 
     endpoint_t *endpoint = dish_washer::create(node, &dish_washer_config, ENDPOINT_FLAG_NONE, NULL);
     ABORT_APP_ON_FAILURE(endpoint != nullptr, ESP_LOGE(TAG, "Failed to create dishwasher endpoint"));
 
-    //uint8_t phase_list[] = { 0x00, 0x01, 0x02 };
-
-    //size_t phase_count = sizeof(phase_list) / sizeof(phase_list[0]);
-
-    //cluster_t *operational_state_cluster = cluster::get(endpoint, OperationalState::Id);
-
-    //esp_matter::attribute_t *phase_list_attr = esp_matter::attribute::get(operational_state_cluster, chip::app::Clusters::OperationalState::Attributes::PhaseList::Id);
-
-    // Turn 
-    //esp_matter_attr_val_t phase_val = esp_matter_array(
-    //    phase_list,          // Pointer to phase array
-    //    phase_count,         // Number of elements
-    //    sizeof(uint8_t)      // Size of each element
-    //);
-
-    // Update the attribute
-    //esp_matter::attribute::set_val(phase_list_attr, &phase_val);
-
-    //chip::app::Clusters::OperationalState::Instance().Init();
-            
-
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);
-
-    // attribute_t * attribute = attribute::get(dish_washer_endpoint_id,
-    //                                          chip::app::Clusters::OperationalState::Id,
-    //                                          chip::app::Clusters::OperationalState::Attributes::PhaseList::Id);
-
-    // attribute::update(endpoint_id, OccupancySensing::Id, OccupancySensing::Attributes::Occupancy::Id, &val);
-
-    //ABORT_APP_ON_FAILURE(attribute != nullptr, ESP_LOGE(TAG, "Failed to get OperationalState PhaseList attribute"));
 
     app_driver_init();
 
@@ -160,10 +131,6 @@ extern "C" void app_main()
     /* Matter start */
     err = esp_matter::start(app_event_cb);
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "Failed to start Matter, err:%d", err));
-
-    //chip::app::Clusters::TemperatureControl::SetInstance(&sAppSupportedTemperatureLevelsDelegate);
-
-    //chip::app::Clusters::OperationalState::SetInstance(&test);
 
 #if CONFIG_ENABLE_CHIP_SHELL
     esp_matter::console::diagnostics_register_commands();

@@ -11,13 +11,14 @@
 #include <esp_err.h>
 #include <esp_matter.h>
 #include <app-common/zap-generated/cluster-objects.h>
+#include <app-common/zap-generated/ids/Attributes.h>
 #include <app/clusters/operational-state-server/operational-state-server.h>
-#include <app/clusters/fan-control-server/fan-control-delegate.h>
 #include <protocols/interaction_model/StatusCode.h>
 
 typedef void *app_driver_handle_t;
 
 using namespace chip;
+using namespace chip::app;
 using namespace chip::app::Clusters::OperationalState;
 
 esp_err_t app_driver_init();
@@ -39,24 +40,85 @@ esp_err_t app_driver_init();
     }
 #endif
 
-class OperationalStateDelegateImpl:public chip::app::Clusters::OperationalState::Delegate
+namespace chip {
+namespace app {
+namespace Clusters {
+namespace OperationalState {
+
+class GenericOperationalStateDelegateImpl : public Delegate
 {
 public:
-    OperationalStateDelegateImpl():Delegate(){}
 
-    //chip::Protocols::InteractionModel::Status HandleStep(chip::app::Clusters::FanControl::StepDirectionEnum aDirection, bool aWrap, bool aLowestOff);
+    //GenericOperationalStateDelegateImpl():Delegate(){}
 
-    chip::app::DataModel::Nullable<uint32_t> GetCountdownTime();
+    uint32_t mRunningTime = 0;
+    uint32_t mPausedTime  = 0;
+    app::DataModel::Nullable<uint32_t> mCountDownTime;
 
-    CHIP_ERROR GetOperationalStateAtIndex(size_t index, GenericOperationalState & operationalState);
+    chip::app::DataModel::Nullable<uint32_t> GetCountdownTime() override;
 
-    CHIP_ERROR GetOperationalPhaseAtIndex(size_t index, MutableCharSpan & operationalPhase);
+    CHIP_ERROR GetOperationalStateAtIndex(size_t index, GenericOperationalState & operationalState) override;
 
-    void HandlePauseStateCallback(GenericOperationalError & err);
+    CHIP_ERROR GetOperationalPhaseAtIndex(size_t index, MutableCharSpan & operationalPhase) override;
 
-    void HandleResumeStateCallback(GenericOperationalError & err);
+    void HandlePauseStateCallback(GenericOperationalError & err) override;
 
-    void HandleStartStateCallback(GenericOperationalError & err);
+    void HandleResumeStateCallback(GenericOperationalError & err) override;
 
-    void HandleStopStateCallback(GenericOperationalError & err);
+    void HandleStartStateCallback(GenericOperationalError & err) override;
+
+    void HandleStopStateCallback(GenericOperationalError & err) override;
+
+protected:
+    Span<const GenericOperationalState> mOperationalStateList;
+    Span<const CharSpan> mOperationalPhaseList;
 };
+
+class OperationalStateDelegate : public GenericOperationalStateDelegateImpl
+{
+private:
+    const GenericOperationalState opStateList[4] = {
+        GenericOperationalState(to_underlying(OperationalStateEnum::kStopped)),
+        GenericOperationalState(to_underlying(OperationalStateEnum::kRunning)),
+        GenericOperationalState(to_underlying(OperationalStateEnum::kPaused)),
+        GenericOperationalState(to_underlying(OperationalStateEnum::kError)),
+    };
+
+    const uint32_t kExampleCountDown = 30;
+
+public:
+    OperationalStateDelegate()
+    {
+        GenericOperationalStateDelegateImpl::mOperationalStateList = Span<const GenericOperationalState>(opStateList);
+    }
+
+    /**
+     * Handle Command Callback in application: Start
+     * @param[out] get operational error after callback.
+     */
+    void HandleStartStateCallback(GenericOperationalError & err) override
+    {
+        mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleCountDown));
+        GenericOperationalStateDelegateImpl::HandleStartStateCallback(err);
+    }
+
+    /**
+     * Handle Command Callback in application: Stop
+     * @param[out] get operational error after callback.
+     */
+    void HandleStopStateCallback(GenericOperationalError & err) override
+    {
+        GenericOperationalStateDelegateImpl::HandleStopStateCallback(err);
+        mCountDownTime.SetNull();
+    }
+};
+
+Instance * GetOperationalStateInstance();
+OperationalStateDelegate * GetOperationalStateDelegate();
+
+void Shutdown();
+
+}
+}
+}
+}

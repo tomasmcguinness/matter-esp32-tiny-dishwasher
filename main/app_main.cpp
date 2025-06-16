@@ -113,6 +113,13 @@ extern "C" void app_main()
     endpoint_t *endpoint = dish_washer::create(node, &dish_washer_config, ENDPOINT_FLAG_NONE, NULL);
     ABORT_APP_ON_FAILURE(endpoint != nullptr, ESP_LOGE(TAG, "Failed to create dishwasher endpoint"));
 
+    esp_matter::cluster_t *operational_state_cluster = esp_matter::cluster::get(endpoint, chip::app::Clusters::OperationalState::Id);
+
+    esp_matter::cluster::operational_state::command::create_start(operational_state_cluster); 
+    esp_matter::cluster::operational_state::command::create_stop(operational_state_cluster); 
+    esp_matter::cluster::operational_state::command::create_pause(operational_state_cluster); 
+    esp_matter::cluster::operational_state::command::create_resume(operational_state_cluster); 
+
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);
 

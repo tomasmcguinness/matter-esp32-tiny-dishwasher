@@ -19,6 +19,7 @@ typedef void *app_driver_handle_t;
 
 using namespace chip;
 using namespace chip::app;
+using namespace chip::app::Clusters;
 using namespace chip::app::Clusters::OperationalState;
 
 esp_err_t app_driver_init();
@@ -45,17 +46,15 @@ namespace app {
 namespace Clusters {
 namespace OperationalState {
 
-class GenericOperationalStateDelegateImpl : public Delegate
+class OperationalStateDelegate : public Delegate
 {
 public:
-
-    //GenericOperationalStateDelegateImpl():Delegate(){}
 
     uint32_t mRunningTime = 0;
     uint32_t mPausedTime  = 0;
     app::DataModel::Nullable<uint32_t> mCountDownTime;
 
-    chip::app::DataModel::Nullable<uint32_t> GetCountdownTime() override;
+    chip::app::DataModel::Nullable<uint32_t> GetCountdownTime();
 
     CHIP_ERROR GetOperationalStateAtIndex(size_t index, GenericOperationalState & operationalState) override;
 
@@ -69,13 +68,10 @@ public:
 
     void HandleStopStateCallback(GenericOperationalError & err) override;
 
-protected:
-    Span<const GenericOperationalState> mOperationalStateList;
-    Span<const CharSpan> mOperationalPhaseList;
-};
+    void PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t * value);
 
-class OperationalStateDelegate : public GenericOperationalStateDelegateImpl
-{
+    EndpointId mEndpointId;
+
 private:
     const GenericOperationalState opStateList[4] = {
         GenericOperationalState(to_underlying(OperationalStateEnum::kStopped)),
@@ -84,41 +80,15 @@ private:
         GenericOperationalState(to_underlying(OperationalStateEnum::kError)),
     };
 
-    const uint32_t kExampleCountDown = 30;
-
-public:
-    OperationalStateDelegate()
-    {
-        GenericOperationalStateDelegateImpl::mOperationalStateList = Span<const GenericOperationalState>(opStateList);
-    }
-
-    /**
-     * Handle Command Callback in application: Start
-     * @param[out] get operational error after callback.
-     */
-    void HandleStartStateCallback(GenericOperationalError & err) override
-    {
-        mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleCountDown));
-        GenericOperationalStateDelegateImpl::HandleStartStateCallback(err);
-    }
-
-    /**
-     * Handle Command Callback in application: Stop
-     * @param[out] get operational error after callback.
-     */
-    void HandleStopStateCallback(GenericOperationalError & err) override
-    {
-        GenericOperationalStateDelegateImpl::HandleStopStateCallback(err);
-        mCountDownTime.SetNull();
-    }
+    app::DataModel::List<const GenericOperationalState> mOperationalStateList = Span<const GenericOperationalState>(opStateList);
 };
 
-Instance * GetOperationalStateInstance();
-OperationalStateDelegate * GetOperationalStateDelegate();
+OperationalState::Instance *GetInstance();
+OperationalState::OperationalStateDelegate * GetDelegate();
 
 void Shutdown();
 
-}
-}
-}
-}
+} // namespace OperationalState
+} // namespace Clusters
+} // namespace app
+} // namespace chip

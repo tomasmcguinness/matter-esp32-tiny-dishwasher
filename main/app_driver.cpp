@@ -9,6 +9,7 @@
 #include "bsp/esp-bsp.h"
 #include <esp_log.h>
 #include <app_priv.h>
+#include <app-common/zap-generated/attribute-type.h>
 
 using namespace chip;
 using namespace chip::app;
@@ -17,12 +18,12 @@ using namespace chip::app::Clusters::OperationalState;
 
 static const char *TAG = "app_driver";
 
-DataModel::Nullable<uint32_t> GenericOperationalStateDelegateImpl::GetCountdownTime()
+DataModel::Nullable<uint32_t> OperationalStateDelegate::GetCountdownTime()
 {
     return DataModel::MakeNullable((uint32_t)0);
 }
 
-CHIP_ERROR GenericOperationalStateDelegateImpl::GetOperationalStateAtIndex(size_t index, GenericOperationalState &operationalState)
+CHIP_ERROR OperationalStateDelegate::GetOperationalStateAtIndex(size_t index, GenericOperationalState &operationalState)
 {
     ESP_LOGI(TAG, "GetOperationalStateAtIndex");
 
@@ -30,13 +31,13 @@ CHIP_ERROR GenericOperationalStateDelegateImpl::GetOperationalStateAtIndex(size_
     {
         return CHIP_ERROR_NOT_FOUND;
     }
-    operationalState = mOperationalStateList[index];
-    return CHIP_NO_ERROR;
 
-    return CHIP_ERROR_NOT_FOUND;
+    operationalState = mOperationalStateList[index];
+
+    return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR GenericOperationalStateDelegateImpl::GetOperationalPhaseAtIndex(size_t index, MutableCharSpan &operationalPhase)
+CHIP_ERROR OperationalStateDelegate::GetOperationalPhaseAtIndex(size_t index, MutableCharSpan &operationalPhase)
 {
     ESP_LOGI(TAG, "GetOperationalPhaseAtIndex");
 
@@ -51,17 +52,17 @@ CHIP_ERROR GenericOperationalStateDelegateImpl::GetOperationalPhaseAtIndex(size_
     }
 }
 
-void GenericOperationalStateDelegateImpl::HandlePauseStateCallback(GenericOperationalError &err)
+void OperationalStateDelegate::HandlePauseStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandlePauseStateCallback");
 }
 
-void GenericOperationalStateDelegateImpl::HandleResumeStateCallback(GenericOperationalError &err)
+void OperationalStateDelegate::HandleResumeStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleResumeStateCallback");
 }
 
-void GenericOperationalStateDelegateImpl::HandleStartStateCallback(GenericOperationalError &err)
+void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleStartStateCallback");
     auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kRunning));
@@ -77,23 +78,24 @@ void GenericOperationalStateDelegateImpl::HandleStartStateCallback(GenericOperat
     }
 }
 
-void GenericOperationalStateDelegateImpl::HandleStopStateCallback(GenericOperationalError &err)
+void OperationalStateDelegate::HandleStopStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleStopStateCallback");
 }
 
-static OperationalState::Instance * gOperationalStateInstance = nullptr;
-static OperationalStateDelegate * gOperationalStateDelegate   = nullptr;
-
-OperationalState::Instance * OperationalState::GetOperationalStateInstance()
+void OperationalStateDelegate::PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t * value)
 {
-    return gOperationalStateInstance;
+    ESP_LOGI(TAG, "PostAttributeChangeCallback");
+
+    chip::app::ConcreteAttributePath  info;
+    info.mClusterId   = Clusters::OperationalState::Id;
+    info.mAttributeId = attributeId;
+    info.mEndpointId  = this->mEndpointId;
+    //MatterPostAttributeChangeCallback(info,type, size, value);
 }
 
-OperationalStateDelegate * OperationalState::GetOperationalStateDelegate()
-{
-    return gOperationalStateDelegate;
-}
+static OperationalState::Instance *gOperationalStateInstance = nullptr;
+static OperationalStateDelegate *gOperationalStateDelegate   = nullptr;
 
 void OperationalState::Shutdown()
 {
@@ -118,9 +120,23 @@ void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
     EndpointId operationalStateEndpoint = 0x01;
     gOperationalStateInstance           = new OperationalState::Instance(gOperationalStateDelegate, operationalStateEndpoint);
 
-    gOperationalStateInstance->SetOperationalState(to_underlying(OperationalState::OperationalStateEnum::kRunning));
+    gOperationalStateInstance->SetOperationalState(to_underlying(OperationalState::OperationalStateEnum::kStopped));
 
     gOperationalStateInstance->Init();
+
+    gOperationalStateDelegate->mEndpointId = endpointId;
+    uint8_t value = to_underlying(OperationalStateEnum::kStopped);
+    gOperationalStateDelegate->PostAttributeChangeCallback(Attributes::OperationalState::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
+}
+
+OperationalState::Instance *OperationalState::GetInstance()
+{
+    return gOperationalStateInstance;
+}
+
+OperationalState::OperationalStateDelegate *OperationalState::GetDelegate()
+{
+    return gOperationalStateDelegate;
 }
 
 esp_err_t app_driver_init()

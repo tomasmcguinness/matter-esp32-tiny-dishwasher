@@ -1,8 +1,12 @@
 #include "dishwasher_manager.h"
 
+#include "esp_log.h"
+
 #include <app/clusters/operational-state-server/operational-state-server.h>
 
 #include "status_display.h"
+
+static const char *TAG = "dishwasher_manager";
 
 using namespace chip;
 using namespace chip::app;
@@ -13,6 +17,7 @@ DishwasherManager DishwasherManager::sDishwasher;
 
 esp_err_t DishwasherManager::Init()
 {
+    ESP_LOGI(TAG, "Initializing DishwasherManager");
     StatusDisplayMgr().Init();
     return ESP_OK;
 }
@@ -23,31 +28,33 @@ OperationalStateEnum DishwasherManager::GetOperationalState()
 }
 
 void DishwasherManager::UpdateDishwasherLed()
-{   
+{
+    ESP_LOGI(TAG, "UpdateDishwasherLed called!");
+
     OperationalStateEnum opState = DishwasherMgr().GetOperationalState();
 
-    switch(opState)
+    switch (opState)
     {
-        case OperationalStateEnum::kRunning:
-            StatusDisplayMgr().SetRed(false);
-            StatusDisplayMgr().SetYellow(false);
-            StatusDisplayMgr().SetGreen(true);
+    case OperationalStateEnum::kRunning:
+        StatusDisplayMgr().SetRed(false);
+        StatusDisplayMgr().SetYellow(false);
+        StatusDisplayMgr().SetGreen(true);
         break;
-        case OperationalStateEnum::kPaused:
-            //set_red(false);
-            //set_yellow(true);
-            //set_green(false);
+    case OperationalStateEnum::kPaused:
+        StatusDisplayMgr().SetRed(false);
+        StatusDisplayMgr().SetYellow(true);
+        StatusDisplayMgr().SetGreen(false);
         break;
-        case OperationalStateEnum::kStopped:
-            //set_red(true);
-            //set_yellow(false);
-            //set_green(false);
+    case OperationalStateEnum::kStopped:
+        StatusDisplayMgr().SetRed(true);
+        StatusDisplayMgr().SetYellow(false);
+        StatusDisplayMgr().SetGreen(false);
         break;
-        case OperationalStateEnum::kError :
-            //sDishwasherLED.Blink(100);
-            // TODO Blink the three LEDS?!
+    case OperationalStateEnum::kError:
+        // sDishwasherLED.Blink(100);
+        //  TODO Blink the three LEDS?!
         break;
-        default:
+    default:
         break;
     }
 }

@@ -56,11 +56,35 @@ CHIP_ERROR OperationalStateDelegate::GetOperationalPhaseAtIndex(size_t index, Mu
 void OperationalStateDelegate::HandlePauseStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandlePauseStateCallback");
+    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kPaused));
+
+    if (error == CHIP_NO_ERROR)
+    {
+        GetInstance()->UpdateCountdownTimeFromDelegate();
+        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kPaused);
+        err.Set(to_underlying(ErrorStateEnum::kNoError));
+    }
+    else
+    {
+        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
+    }
 }
 
 void OperationalStateDelegate::HandleResumeStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleResumeStateCallback");
+    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kRunning));
+
+    if (error == CHIP_NO_ERROR)
+    {
+        GetInstance()->UpdateCountdownTimeFromDelegate();
+        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kRunning);
+        err.Set(to_underlying(ErrorStateEnum::kNoError));
+    }
+    else
+    {
+        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
+    }
 }
 
 void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError &err)
@@ -68,8 +92,8 @@ void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError 
     ESP_LOGI(TAG, "HandleStartStateCallback");
     auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kRunning));
 
-     if (error == CHIP_NO_ERROR)
-    {        
+    if (error == CHIP_NO_ERROR)
+    {
         GetInstance()->UpdateCountdownTimeFromDelegate();
         DishwasherMgr().UpdateOperationState(OperationalStateEnum::kRunning);
         err.Set(to_underlying(ErrorStateEnum::kNoError));
@@ -83,21 +107,33 @@ void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError 
 void OperationalStateDelegate::HandleStopStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleStopStateCallback");
+    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kStopped));
+
+    if (error == CHIP_NO_ERROR)
+    {
+        GetInstance()->UpdateCountdownTimeFromDelegate();
+        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kStopped);
+        err.Set(to_underlying(ErrorStateEnum::kNoError));
+    }
+    else
+    {
+        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
+    }
 }
 
-void OperationalStateDelegate::PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t * value)
+void OperationalStateDelegate::PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t *value)
 {
     ESP_LOGI(TAG, "PostAttributeChangeCallback");
 
-    chip::app::ConcreteAttributePath  info;
-    info.mClusterId   = Clusters::OperationalState::Id;
+    chip::app::ConcreteAttributePath info;
+    info.mClusterId = Clusters::OperationalState::Id;
     info.mAttributeId = attributeId;
-    info.mEndpointId  = this->mEndpointId;
-    //MatterPostAttributeChangeCallback(info,type, size, value);
+    info.mEndpointId = this->mEndpointId;
+    // MatterPostAttributeChangeCallback(info,type, size, value);
 }
 
 static OperationalState::Instance *gOperationalStateInstance = nullptr;
-static OperationalStateDelegate *gOperationalStateDelegate   = nullptr;
+static OperationalStateDelegate *gOperationalStateDelegate = nullptr;
 
 void OperationalState::Shutdown()
 {
@@ -118,9 +154,9 @@ void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
     VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
     VerifyOrDie(gOperationalStateInstance == nullptr && gOperationalStateDelegate == nullptr);
 
-    gOperationalStateDelegate           = new OperationalStateDelegate;
+    gOperationalStateDelegate = new OperationalStateDelegate;
     EndpointId operationalStateEndpoint = 0x01;
-    gOperationalStateInstance           = new OperationalState::Instance(gOperationalStateDelegate, operationalStateEndpoint);
+    gOperationalStateInstance = new OperationalState::Instance(gOperationalStateDelegate, operationalStateEndpoint);
 
     gOperationalStateInstance->SetOperationalState(to_underlying(OperationalState::OperationalStateEnum::kStopped));
 

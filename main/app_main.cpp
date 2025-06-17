@@ -19,6 +19,8 @@
 
 #include <app-common/zap-generated/ids/Attributes.h> // For Attribute IDs
 
+#include "dishwasher_manager.h"
+
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
 #include <platform/ESP32/OpenthreadLauncher.h>
 #endif
@@ -30,14 +32,11 @@ using namespace esp_matter;
 using namespace esp_matter::attribute;
 using namespace esp_matter::endpoint;
 using namespace esp_matter::cluster;
-//using namespace chip::app::Clusters;
-
-//static chip::app::Clusters::OperationalState::AppSupportedTemperatureLevelsDelegate sAppSupportedTemperatureLevelsDelegate;
-
 
 static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 {
-    switch (event->Type) {
+    switch (event->Type)
+    {
     case chip::DeviceLayer::DeviceEventType::kInterfaceIpAddressChanged:
         ESP_LOGI(TAG, "Interface IP Address Changed");
         break;
@@ -86,7 +85,8 @@ static esp_err_t app_identification_cb(identification::callback_type_t type, uin
 static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint_id, uint32_t cluster_id,
                                          uint32_t attribute_id, esp_matter_attr_val_t *val, void *priv_data)
 {
-    if (type == PRE_UPDATE) {
+    if (type == PRE_UPDATE)
+    {
         /* Handle the attribute updates here. */
     }
 
@@ -115,13 +115,16 @@ extern "C" void app_main()
 
     esp_matter::cluster_t *operational_state_cluster = esp_matter::cluster::get(endpoint, chip::app::Clusters::OperationalState::Id);
 
-    esp_matter::cluster::operational_state::command::create_start(operational_state_cluster); 
-    esp_matter::cluster::operational_state::command::create_stop(operational_state_cluster); 
-    esp_matter::cluster::operational_state::command::create_pause(operational_state_cluster); 
-    esp_matter::cluster::operational_state::command::create_resume(operational_state_cluster); 
+    esp_matter::cluster::operational_state::command::create_start(operational_state_cluster);
+    esp_matter::cluster::operational_state::command::create_stop(operational_state_cluster);
+    esp_matter::cluster::operational_state::command::create_pause(operational_state_cluster);
+    esp_matter::cluster::operational_state::command::create_resume(operational_state_cluster);
 
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);
+
+    err = DishwasherMgr().Init();
+    ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "DishwasherMgr::Init() failed, err:%d", err));
 
     app_driver_init();
 

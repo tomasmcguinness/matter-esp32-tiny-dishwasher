@@ -10,6 +10,7 @@
 #include <esp_log.h>
 #include <app_priv.h>
 #include <app-common/zap-generated/attribute-type.h>
+#include "dishwasher_manager.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -68,8 +69,9 @@ void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError 
     auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kRunning));
 
      if (error == CHIP_NO_ERROR)
-    {
+    {        
         GetInstance()->UpdateCountdownTimeFromDelegate();
+        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kRunning);
         err.Set(to_underlying(ErrorStateEnum::kNoError));
     }
     else

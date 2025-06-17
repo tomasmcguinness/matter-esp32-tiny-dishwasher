@@ -1,8 +1,8 @@
 set(SRC_LIST       app_driver.cpp
                    app_main.cpp
+                   dishwasher_manager.cpp
+                   status_display.cpp
    )
-
-#set(INCLUDE_DIRS_LIST   "${MATTER_SDK_PATH}/examples/all-clusters-app/all-clusters-common/include")
 
 idf_component_register(SRCS              ${SRC_LIST}
                       INCLUDE_DIRS       ${INCLUDE_DIRS_LIST}

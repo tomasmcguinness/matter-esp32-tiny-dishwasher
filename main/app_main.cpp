@@ -113,12 +113,33 @@ extern "C" void app_main()
     endpoint_t *endpoint = dish_washer::create(node, &dish_washer_config, ENDPOINT_FLAG_NONE, NULL);
     ABORT_APP_ON_FAILURE(endpoint != nullptr, ESP_LOGE(TAG, "Failed to create dishwasher endpoint"));
 
+    // OperationalState is a mandatory cluster for the dishwasher endpoint.
+    // Get it and then add the commands to it. These commands are optional, so we must add them.
+    //
     esp_matter::cluster_t *operational_state_cluster = esp_matter::cluster::get(endpoint, chip::app::Clusters::OperationalState::Id);
 
     esp_matter::cluster::operational_state::command::create_start(operational_state_cluster);
     esp_matter::cluster::operational_state::command::create_stop(operational_state_cluster);
     esp_matter::cluster::operational_state::command::create_pause(operational_state_cluster);
     esp_matter::cluster::operational_state::command::create_resume(operational_state_cluster);
+
+    // Create the DishwasherMode cluster and add it to the dishwasher endpoint
+    //
+    static DishwasherModeDelegate dish_washer_mode_delegate;
+
+    esp_matter::cluster::dish_washer_mode::config_t dish_washer_mode_config;
+    dish_washer_mode_config.delegate = &dish_washer_mode_delegate;
+    dish_washer_mode_config.current_mode = DishwasherMode::ModeNormal; // Set the initial mode
+
+    esp_matter::cluster_t *dish_washer_mode_cluster = esp_matter::cluster::dish_washer_mode::create(endpoint, &dish_washer_mode_config, CLUSTER_FLAG_SERVER);
+    ABORT_APP_ON_FAILURE(dish_washer_mode_cluster != nullptr, ESP_LOGE(TAG, "Failed to create dishwashermode cluster"));
+
+    esp_matter::cluster::mode_base::attribute::create_supported_modes(dish_washer_mode_cluster, NULL, 0, 0);
+    
+    // Add the On/Off cluster to the dishwasher endpoint and mark it with the dead front behavior feature.
+    //
+    esp_matter::cluster::on_off::config_t on_off_config;
+    esp_matter::cluster_t *on_off_cluster = esp_matter::cluster::on_off::create(endpoint, &on_off_config, CLUSTER_FLAG_SERVER, esp_matter::cluster::on_off::feature::dead_front_behavior::get_id());
 
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);

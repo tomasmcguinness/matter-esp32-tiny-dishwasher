@@ -11,6 +11,7 @@
 #include <app_priv.h>
 #include <app-common/zap-generated/attribute-type.h>
 #include "dishwasher_manager.h"
+#include "1602_lcd.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -149,8 +150,20 @@ void OperationalState::Shutdown()
     }
 }
 
+OperationalState::Instance *OperationalState::GetInstance()
+{
+    return gOperationalStateInstance;
+}
+
+OperationalState::OperationalStateDelegate *OperationalState::GetDelegate()
+{
+    return gOperationalStateDelegate;
+}
+
 void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
 {
+    ESP_LOGI(TAG, "emberAfOperationalStateClusterInitCallback()");
+
     VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
     VerifyOrDie(gOperationalStateInstance == nullptr && gOperationalStateDelegate == nullptr);
 
@@ -164,21 +177,127 @@ void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
 
     gOperationalStateDelegate->mEndpointId = endpointId;
     uint8_t value = to_underlying(OperationalStateEnum::kStopped);
-    gOperationalStateDelegate->PostAttributeChangeCallback(Attributes::OperationalState::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
+    gOperationalStateDelegate->PostAttributeChangeCallback(chip::app::Clusters::OperationalState::Attributes::OperationalState::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
 }
 
-OperationalState::Instance *OperationalState::GetInstance()
+//****************************
+//* DISHWASHER MODE DELEGATE *
+//****************************
+
+using chip::Protocols::InteractionModel::Status;
+template <typename T>
+using List              = chip::app::DataModel::List<T>;
+using ModeTagStructType = chip::app::Clusters::detail::Structs::ModeTagStruct::Type;
+
+static DishwasherModeDelegate * gDishwasherModeDelegate = nullptr;
+static ModeBase::Instance * gDishwasherModeInstance     = nullptr;
+
+CHIP_ERROR DishwasherModeDelegate::Init()
 {
-    return gOperationalStateInstance;
+    ESP_LOGI(TAG, "DishwasherModeDelegate::Init()");
+    return CHIP_NO_ERROR;
 }
 
-OperationalState::OperationalStateDelegate *OperationalState::GetDelegate()
+// todo refactor code by making a parent class for all ModeInstance classes to reduce flash usage.
+void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type & response)
 {
-    return gOperationalStateDelegate;
+    ESP_LOGI(TAG, "DishwasherModeDelegate::HandleChangeToMode()");
+    response.status = to_underlying(ModeBase::StatusCode::kSuccess);
 }
+
+CHIP_ERROR DishwasherModeDelegate::GetModeLabelByIndex(uint8_t modeIndex, chip::MutableCharSpan & label)
+{
+    ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeLabelByIndex()");
+    if (modeIndex >= ArraySize(kModeOptions))
+    {
+        return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED;
+    }
+    return chip::CopyCharSpanToMutableCharSpan(kModeOptions[modeIndex].label, label);
+}
+
+CHIP_ERROR DishwasherModeDelegate::GetModeValueByIndex(uint8_t modeIndex, uint8_t & value)
+{
+    ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeValueByIndex()");
+    if (modeIndex >= ArraySize(kModeOptions))
+    {
+        return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED;
+    }
+    value = kModeOptions[modeIndex].mode;
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR DishwasherModeDelegate::GetModeTagsByIndex(uint8_t modeIndex, List<ModeTagStructType> & tags)
+{
+    ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeTagsByIndex()");
+    if (modeIndex >= ArraySize(kModeOptions))
+    {
+        return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED;
+    }
+
+    if (tags.size() < kModeOptions[modeIndex].modeTags.size())
+    {
+        return CHIP_ERROR_INVALID_ARGUMENT;
+    }
+
+    std::copy(kModeOptions[modeIndex].modeTags.begin(), kModeOptions[modeIndex].modeTags.end(), tags.begin());
+    tags.reduce_size(kModeOptions[modeIndex].modeTags.size());
+
+    return CHIP_NO_ERROR;
+}
+
+ModeBase::Instance * DishwasherMode::Instance()
+{
+    return gDishwasherModeInstance;
+}
+
+void DishwasherMode::Shutdown()
+{
+    if (gDishwasherModeInstance != nullptr)
+    {
+        delete gDishwasherModeInstance;
+        gDishwasherModeInstance = nullptr;
+    }
+    if (gDishwasherModeDelegate != nullptr)
+    {
+        delete gDishwasherModeDelegate;
+        gDishwasherModeDelegate = nullptr;
+    }
+}
+
+void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
+{
+    ESP_LOGI(TAG, "emberAfDishwasherModeClusterInitCallback()");
+
+    VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
+    VerifyOrDie(gDishwasherModeDelegate == nullptr && gDishwasherModeInstance == nullptr);
+    gDishwasherModeDelegate = new DishwasherMode::DishwasherModeDelegate;
+    gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode::Feature::kOnOff));
+    gDishwasherModeInstance->Init();
+}
+
 
 esp_err_t app_driver_init()
 {
     esp_err_t err = ESP_OK;
+
+    lcd_err_t ret = LCD_OK;
+
+    // Initialize LCD object
+    lcdInit();
+
+    // Clear previous data on LCD 
+    ret = lcdClear();
+    lcdAssert(ret);
+
+    char buffer[16] = "Dishwasher v0.1";
+     
+    // Set text
+    ret = lcdSetText(buffer, 0, 0);
+    lcdAssert(ret);
+
+    char buffer1[17] = "Normal";
+    ret = lcdSetText(buffer1, 0, 1);
+    lcdAssert(ret);
+
     return err;
 }

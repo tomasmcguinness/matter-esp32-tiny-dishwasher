@@ -1,7 +1,8 @@
-set(SRC_LIST       app_driver.cpp
-                   app_main.cpp
-                   dishwasher_manager.cpp
-                   status_display.cpp
+set(SRC_LIST   app_driver.cpp
+               app_main.cpp
+               dishwasher_manager.cpp
+               status_display.cpp
+               1602_lcd.c
    )
 
 idf_component_register(SRCS              ${SRC_LIST}

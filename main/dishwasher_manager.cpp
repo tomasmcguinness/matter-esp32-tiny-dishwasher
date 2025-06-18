@@ -19,6 +19,7 @@ esp_err_t DishwasherManager::Init()
 {
     ESP_LOGI(TAG, "Initializing DishwasherManager");
     StatusDisplayMgr().Init();
+    UpdateDishwasherLed();
     return ESP_OK;
 }
 

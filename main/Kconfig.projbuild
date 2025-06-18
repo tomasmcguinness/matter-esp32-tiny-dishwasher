@@ -1,0 +1,33 @@
+menu "Dishwasher"
+
+config DATA_0_PIN
+    int "GPIO pin number for LCD Data 4"
+    default 19
+    help
+        This option sets the ESP32 GPIO pin for LCD Data 4
+config DATA_1_PIN
+    int "GPIO pin number for LCD Data 5"
+    default 18
+    help
+        This option sets the ESP32 GPIO pin for LCD Data 5
+config DATA_2_PIN
+    int "GPIO pin number for LCD Data 6"
+    default 17
+    help
+        This option sets the ESP32 GPIO pin for LCD Data 6
+    config DATA_3_PIN
+    int "GPIO pin number for LCD Data 7"
+    default 16
+    help
+        This option sets the ESP32 GPIO pin for LCD Data 7
+config ENABLE_PIN
+    int "GPIO pin number for Enable Pin"
+    default 22
+    help
+        This option sets the ESP32 GPIO pin for LCD Enable
+config REGISTER_SELECT_PIN
+    int "GPIO pin number for Register Select"
+    default 23
+    help
+        This option sets the ESP32 GPIO pin for LCD Register Select               
+endmenu

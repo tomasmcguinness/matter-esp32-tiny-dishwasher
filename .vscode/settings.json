@@ -1,6 +1,12 @@
 {
     "files.associations": {
         "chrono": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "memory": "cpp",
+        "future": "cpp",
+        "istream": "cpp",
+        "functional": "cpp",
+        "locale": "cpp",
+        "*.inc": "cpp"
     }
 }

@@ -6,9 +6,9 @@ class StatusDisplay
 public:
     esp_err_t Init();
 
-    void SetRed(bool state);
-    void SetYellow(bool state);
-    void SetGreen(bool state);
+    void SetStopped();
+    void SetRunning();
+    void SetPaused();
 
 private:
     friend StatusDisplay & StatusDisplayMgr(void);

@@ -17,8 +17,13 @@ set(ZAP_GENERATED_PATH ${CMAKE_CURRENT_LIST_DIR}/main/zap-generated)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 include(${ESP_MATTER_PATH}/examples/common/cmake_common/components_include.cmake)
 
+# set(EXTRA_COMPONENT_DIRS
+#     "${ESP_MATTER_PATH}/examples/common"
+#     "${MATTER_SDK_PATH}/config/esp32/components"
+#     "${ESP_MATTER_PATH}/components"
+#     ${extra_components_dirs_append})
+
 set(EXTRA_COMPONENT_DIRS
-    "${ESP_MATTER_PATH}/examples/common"
     "${MATTER_SDK_PATH}/config/esp32/components"
     "${ESP_MATTER_PATH}/components"
     ${extra_components_dirs_append})

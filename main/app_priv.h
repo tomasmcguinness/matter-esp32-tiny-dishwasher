@@ -13,6 +13,7 @@
 #include <app-common/zap-generated/cluster-objects.h>
 #include <app-common/zap-generated/ids/Attributes.h>
 #include <app/clusters/mode-base-server/mode-base-server.h>
+#include <app/clusters/mode-base-server/mode-base-cluster-objects.h>
 #include <app/clusters/operational-state-server/operational-state-server.h>
 #include <protocols/interaction_model/StatusCode.h>
 
@@ -86,8 +87,7 @@ private:
     app::DataModel::List<const GenericOperationalState> mOperationalStateList = Span<const GenericOperationalState>(opStateList);
 };
 
-OperationalState::Instance *GetInstance();
-OperationalState::OperationalStateDelegate * GetDelegate();
+OperationalState::OperationalStateDelegate *GetDelegate();
 
 void Shutdown();
 
@@ -136,11 +136,19 @@ private:
     CHIP_ERROR GetModeValueByIndex(uint8_t modeIndex, uint8_t & value) override;
     CHIP_ERROR GetModeTagsByIndex(uint8_t modeIndex, DataModel::List<ModeTagStructType> & tags) override;
 
+    
 public:
     ~DishwasherModeDelegate() override = default;
+
+    void PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t * value);
+
+    Protocols::InteractionModel::Status SetDishwasherMode(uint8_t mode);
+
+    EndpointId mEndpointId;
 };
 
-ModeBase::Instance * Instance();
+ModeBase::Instance * GetInstance();
+ModeBase::Delegate * GetDelegate();
 
 void Shutdown();
 

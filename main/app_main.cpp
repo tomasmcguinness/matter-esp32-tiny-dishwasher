@@ -15,7 +15,6 @@
 
 #include <common_macros.h>
 #include <app_priv.h>
-#include <app_reset.h>
 
 #include <app-common/zap-generated/ids/Attributes.h> // For Attribute IDs
 
@@ -135,6 +134,8 @@ extern "C" void app_main()
     ABORT_APP_ON_FAILURE(dish_washer_mode_cluster != nullptr, ESP_LOGE(TAG, "Failed to create dishwashermode cluster"));
 
     esp_matter::cluster::mode_base::attribute::create_supported_modes(dish_washer_mode_cluster, NULL, 0, 0);
+
+    esp_matter::cluster::mode_base::command::create_change_to_mode(dish_washer_mode_cluster);
     
     // Add the On/Off cluster to the dishwasher endpoint and mark it with the dead front behavior feature.
     //

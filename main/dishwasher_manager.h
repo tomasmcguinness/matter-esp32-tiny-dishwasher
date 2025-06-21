@@ -10,14 +10,23 @@ class DishwasherManager
 {
 public:
     esp_err_t Init();
-    void UpdateDishwasherLed();
+    void UpdateDishwasherDisplay();
+
     void UpdateOperationState(OperationalStateEnum state);
+
     OperationalStateEnum GetOperationalState();
+
+    void UpdateMode(uint8_t mode);
+    void SelectNextMode();
+    void SelectPreviousMode();
 
 private:
     friend DishwasherManager & DishwasherMgr(void);
-    OperationalStateEnum mState;
+
     static DishwasherManager sDishwasher;
+    
+    OperationalStateEnum mState;
+    uint8_t mMode;
 };
 
 inline DishwasherManager & DishwasherMgr(void)

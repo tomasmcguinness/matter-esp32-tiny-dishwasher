@@ -127,15 +127,21 @@ extern "C" void app_main()
     static DishwasherModeDelegate dish_washer_mode_delegate;
 
     esp_matter::cluster::dish_washer_mode::config_t dish_washer_mode_config;
-    dish_washer_mode_config.delegate = &dish_washer_mode_delegate;
-    dish_washer_mode_config.current_mode = DishwasherMode::ModeNormal; // Set the initial mode
+
+    // TODO Setting the delegate here causes esp-matter to create it's own Instance of ModeBase
+    // However, any attempt to change this Instance's attributes will result in chipDie.
+    // At this time, I'm using the emberAfDishwasherModeClusterInitCallback method to create the instance.
+    // This appears to work!
+    //
+    //dish_washer_mode_config.delegate = &dish_washer_mode_delegate;
+    //dish_washer_mode_config.current_mode = DishwasherMode::ModeHeavy; // Set the initial mode
 
     esp_matter::cluster_t *dish_washer_mode_cluster = esp_matter::cluster::dish_washer_mode::create(endpoint, &dish_washer_mode_config, CLUSTER_FLAG_SERVER);
     ABORT_APP_ON_FAILURE(dish_washer_mode_cluster != nullptr, ESP_LOGE(TAG, "Failed to create dishwashermode cluster"));
 
-    esp_matter::cluster::mode_base::attribute::create_supported_modes(dish_washer_mode_cluster, NULL, 0, 0);
+    // esp_matter::cluster::mode_base::attribute::create_supported_modes(dish_washer_mode_cluster, NULL, 0, 0);
 
-    esp_matter::cluster::mode_base::command::create_change_to_mode(dish_washer_mode_cluster);
+    // esp_matter::cluster::mode_base::command::create_change_to_mode(dish_washer_mode_cluster);
     
     // Add the On/Off cluster to the dishwasher endpoint and mark it with the dead front behavior feature.
     //
@@ -163,6 +169,8 @@ extern "C" void app_main()
     /* Matter start */
     err = esp_matter::start(app_event_cb);
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "Failed to start Matter, err:%d", err));
+
+    //chip::app::Clusters::DishwasherMode::SetInstance(&sDishwasherModeDelegate);
 
 #if CONFIG_ENABLE_CHIP_SHELL
     esp_matter::console::diagnostics_register_commands();

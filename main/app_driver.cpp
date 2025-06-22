@@ -14,6 +14,8 @@
 #include "dishwasher_manager.h"
 #include "1602_lcd.h"
 
+#include <esp_debug_helpers.h>
+
 using namespace chip;
 using namespace chip::app;
 using namespace chip::app::Clusters;
@@ -196,6 +198,13 @@ static ModeBase::Instance * gDishwasherModeInstance     = nullptr;
 CHIP_ERROR DishwasherModeDelegate::Init()
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::Init()");
+
+    gDishwasherModeInstance = mInstance;
+    // if(mInstance != nullptr) 
+    // {
+    //     ESP_LOGI(TAG, "DishwasherModeDelegate::Init() - we have the instance!");
+    // }
+
     return CHIP_NO_ERROR;
 }
 
@@ -203,7 +212,7 @@ CHIP_ERROR DishwasherModeDelegate::Init()
 void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type & response)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::HandleChangeToMode()");
-    DishwasherMgr().UpdateOperationState(OperationalStateEnum::kStopped);
+    //DishwasherMgr().UpdateOperationState(OperationalStateEnum::kStopped);
     response.status = to_underlying(ModeBase::StatusCode::kSuccess);
 }
 
@@ -221,12 +230,18 @@ CHIP_ERROR DishwasherModeDelegate::GetModeLabelByIndex(uint8_t modeIndex, chip::
 CHIP_ERROR DishwasherModeDelegate::GetModeValueByIndex(uint8_t modeIndex, uint8_t & value)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeValueByIndex(%d)", modeIndex);
+
+    //esp_backtrace_print(20);
+
     if (modeIndex >= MATTER_ARRAY_SIZE(kModeOptions))
     {
         ESP_LOGI(TAG, "CHIP_ERROR_PROVIDER_LIST_EXHAUSTED");
         return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED;
     }
     value = kModeOptions[modeIndex].mode;
+
+    ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeValueByIndex - Returning value %d for modeIndex: %d", value, modeIndex);
+
     return CHIP_NO_ERROR;
 }
 
@@ -257,7 +272,6 @@ Status DishwasherModeDelegate::SetDishwasherMode(uint8_t modeValue)
 
     if (!DishwasherMode::GetInstance()->IsSupportedMode(modeValue))
     {
-        
         ChipLogError(AppServer, "SetWaterHeaterMode bad mode");
         return Status::ConstraintError;
     }
@@ -318,8 +332,14 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, 0);
     gDishwasherModeInstance->Init();
 
-    gDishwasherModeDelegate->mEndpointId = endpointId;
-    //uint8_t value = to_underlying(chip::app::Clusters::DishwasherMode::ModeTag::kNormal);
+    uint8_t currentMode = gDishwasherModeInstance->GetCurrentMode();
+
+    ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
+
+    //gDishwasherModeInstance->UpdateCurrentMode(ModeHeavy);
+
+    //gDishwasherModeDelegate->mEndpointId = endpointId;
+    //uint8_t value = ModeHeavy;
     //gDishwasherModeDelegate->PostAttributeChangeCallback(chip::app::Clusters::DishwasherMode::Attributes::CurrentMode::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
 }
 

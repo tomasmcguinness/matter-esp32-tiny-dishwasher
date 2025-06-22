@@ -37,12 +37,12 @@ static void pulse_counter_monitor_task(void *arg)
     {
         if (xQueueReceive(gpio_pulse_evt_queue, &event_count, pdMS_TO_TICKS(1000)))
         {
-            //ESP_LOGI(TAG, "Watch point event, count: %d", event_count);
+            ESP_LOGI(TAG, "Watch point event, count: %d", event_count);
         }
         else
         {
             ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
-            //ESP_LOGI(TAG, "Current pulse count: %d", pulse_count);
+            ESP_LOGI(TAG, "Current pulse count: %d", pulse_count);
 
             if (pulse_count != current_pulse_count)
             {

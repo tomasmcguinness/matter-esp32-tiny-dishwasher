@@ -27,19 +27,19 @@ static const char *lcd_tag = "LCD tag"; /*! < LCD tag */
 #define GPIO_STATE_HIGH 1 /*!< Logic high */
 
 /* Default pinout  */
-// #define DATA_0_PIN 19          /*!< DATA 0 */
-// #define DATA_1_PIN 18          /*!< DATA 0 */
-// #define DATA_2_PIN 17          /*!< DATA 0 */
-// #define DATA_3_PIN 16          /*!< DATA 0 */
+#define DATA_0_PIN 19          /*!< DATA 0 */
+#define DATA_1_PIN 18          /*!< DATA 0 */
+#define DATA_2_PIN 17          /*!< DATA 0 */
+#define DATA_3_PIN 16          /*!< DATA 0 */
+#define ENABLE_PIN 22          /*!< Enable  */
+#define REGISTER_SELECT_PIN 23 /*!< Register Select  */
+
+// #define DATA_0_PIN 18          /*!< DATA 0 */
+// #define DATA_1_PIN 19          /*!< DATA 0 */
+// #define DATA_2_PIN 20          /*!< DATA 0 */
+// #define DATA_3_PIN 21          /*!< DATA 0 */
 // #define ENABLE_PIN 22          /*!< Enable  */
 // #define REGISTER_SELECT_PIN 23 /*!< Register Select  */
-
-#define DATA_0_PIN 18          /*!< DATA 0 */
-#define DATA_1_PIN 20          /*!< DATA 0 */
-#define DATA_2_PIN 19          /*!< DATA 0 */
-#define DATA_3_PIN 17          /*!< DATA 0 */
-#define ENABLE_PIN 16          /*!< Enable  */
-#define REGISTER_SELECT_PIN 23 /*!< Register Select  */
 
 /**
  * @brief Trigger LCD enable pin
@@ -193,6 +193,9 @@ void lcdCtor(lcd_t *lcd, gpio_num_t data[LCD_DATA_LINE], gpio_num_t en, gpio_num
     lcd->en = en;
     lcd->regSel = regSel;
 
+    ESP_ERROR_CHECK(gpio_reset_pin(lcd->en));
+    ESP_ERROR_CHECK(gpio_reset_pin(lcd->regSel));
+
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     /* Select en and register select pin */
     esp_rom_gpio_pad_select_gpio(lcd->en);
@@ -204,16 +207,18 @@ void lcdCtor(lcd_t *lcd, gpio_num_t data[LCD_DATA_LINE], gpio_num_t en, gpio_num
 #endif
 
     /* Set en and register select pin as output */
-    gpio_set_direction(lcd->en, GPIO_MODE_OUTPUT);
-    gpio_set_direction(lcd->regSel, GPIO_MODE_OUTPUT);
+    ESP_ERROR_CHECK(gpio_set_direction(lcd->en, GPIO_MODE_OUTPUT));
+    ESP_ERROR_CHECK(gpio_set_direction(lcd->regSel, GPIO_MODE_OUTPUT));
 
     /* Set en and register select pin as low */
-    gpio_set_level(lcd->en, GPIO_STATE_LOW);
-    gpio_set_level(lcd->regSel, GPIO_STATE_LOW);
+    ESP_ERROR_CHECK(gpio_set_level(lcd->en, GPIO_STATE_LOW));
+    ESP_ERROR_CHECK(gpio_set_level(lcd->regSel, GPIO_STATE_LOW));
 
     /* Select all data pins */
     for (i = 0; i < LCD_DATA_LINE; i++)
     {
+        ESP_ERROR_CHECK(gpio_reset_pin(lcd->data[i]));
+
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
         esp_rom_gpio_pad_select_gpio(lcd->data[i]);
 #else
@@ -223,12 +228,12 @@ void lcdCtor(lcd_t *lcd, gpio_num_t data[LCD_DATA_LINE], gpio_num_t en, gpio_num
     /* Set all data pins as output */
     for (i = 0; i < LCD_DATA_LINE; i++)
     {
-        gpio_set_direction(lcd->data[i], GPIO_MODE_OUTPUT);
+        ESP_ERROR_CHECK(gpio_set_direction(lcd->data[i], GPIO_MODE_OUTPUT));
     }
     /* Set all data pins output as low */
     for (i = 0; i < LCD_DATA_LINE; i++)
     {
-        gpio_set_level(lcd->data[i], GPIO_STATE_LOW);
+        ESP_ERROR_CHECK(gpio_set_level(lcd->data[i], GPIO_STATE_LOW));
     }
 
     lcd->state = (lcd_state_t)LCD_ACTIVE;
@@ -354,7 +359,8 @@ void lcdFree(lcd_t *const lcd)
     lcd->state = (lcd_state_t)LCD_INACTIVE;
 }
 
-void assert_lcd(lcd_err_t lcd_error){
+void assert_lcd(lcd_err_t lcd_error)
+{
     if (lcd_error == LCD_FAIL)
     {
       ESP_LOGE(lcd_tag, "LCD has failed!!!\n"); /* Display error message */

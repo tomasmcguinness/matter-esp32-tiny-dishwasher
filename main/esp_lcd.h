@@ -22,7 +22,6 @@ typedef int lcd_err_t;      /*!< LCD error type */
 #define LCD_FAIL            -1  /*!< LCD fail error */
 #define LCD_OK               0  /*!< LCD success    */
 
-
 #define LCD_DATA_LINE 4 /*!< 4-Bit data line */
 
 /******************************************************************

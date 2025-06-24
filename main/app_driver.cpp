@@ -328,6 +328,7 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
     VerifyOrDie(gDishwasherModeDelegate == nullptr && gDishwasherModeInstance == nullptr);
     gDishwasherModeDelegate = new DishwasherMode::DishwasherModeDelegate;
+    // TODO Restore the deadfront support by setting the OnOff feature.
     //gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
     gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, 0);
     gDishwasherModeInstance->Init();

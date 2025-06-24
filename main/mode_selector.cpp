@@ -29,8 +29,6 @@ ModeSelector ModeSelector::sModeSelector;
 #define EXAMPLE_PCNT_HIGH_LIMIT 100
 #define EXAMPLE_PCNT_LOW_LIMIT -100
 
-#define CONTACT_SENSOR_GPIO GPIO_NUM_10
-
 static void pulse_counter_monitor_task(void *arg)
 {
     while (1)

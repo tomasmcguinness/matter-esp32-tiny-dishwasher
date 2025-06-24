@@ -8,7 +8,6 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lvgl_port.h"
 #include "driver/i2c_master.h"
-#include "lvgl.h"
 
 static const char *TAG = "status_display";
 
@@ -96,15 +95,15 @@ esp_err_t StatusDisplay::Init()
         }
     };
 
-    lv_disp_t *disp = lvgl_port_add_disp(&disp_cfg);
+    mDisp = lvgl_port_add_disp(&disp_cfg);
 
     /* Rotation of the screen */
-    lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
+    lv_disp_set_rotation(mDisp, LV_DISP_ROT_NONE);
 
-    lv_obj_t *scr = lv_disp_get_scr_act(disp);
+    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
     lv_obj_t *label = lv_label_create(scr);
     lv_label_set_text(label, "ACME Dishwasher");
-    lv_obj_set_width(label, disp->driver->hor_res);
+    lv_obj_set_width(label, mDisp->driver->hor_res);
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
@@ -115,14 +114,35 @@ esp_err_t StatusDisplay::Init()
 void StatusDisplay::SetStopped()
 {
     ESP_LOGI(TAG, "Setting status to stopped");
+
+    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
+    lv_obj_t *label = lv_label_create(scr);
+    lv_label_set_text(label, "STOPPED");
+    lv_obj_set_width(label, mDisp->driver->hor_res);
+    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_obj_set_style_bg_color(label, lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(label, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(label, lv_color_hex(0xffffff), LV_PART_MAIN);
 }
 
 void StatusDisplay::SetRunning()
 {
     ESP_LOGI(TAG, "Setting status to running");
+
+    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
+    lv_obj_t *label = lv_label_create(scr);
+    lv_label_set_text(label, "RUNNING");
+    lv_obj_set_width(label, mDisp->driver->hor_res);
+    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }
 
 void StatusDisplay::SetPaused()
 {
     ESP_LOGI(TAG, "Setting status to paused");
+
+    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
+    lv_obj_t *label = lv_label_create(scr);
+    lv_label_set_text(label, "PAUSED");
+    lv_obj_set_width(label, mDisp->driver->hor_res);
+    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }

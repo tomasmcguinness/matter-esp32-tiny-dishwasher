@@ -3,8 +3,6 @@ set(SRC_LIST   app_driver.cpp
                dishwasher_manager.cpp
                status_display.cpp
                mode_selector.cpp
-               #1602_lcd.c
-               esp_lcd.c
    )
 
 idf_component_register(SRCS              ${SRC_LIST}

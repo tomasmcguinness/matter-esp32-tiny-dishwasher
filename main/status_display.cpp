@@ -2,38 +2,110 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "status_display.h"
-#include "esp_lcd.h"
+
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_vendor.h"
+#include "esp_lvgl_port.h"
+#include "driver/i2c_master.h"
+#include "lvgl.h"
 
 static const char *TAG = "status_display";
 
-StatusDisplay StatusDisplay::sStatusDisplay;
+#define I2C_BUS_PORT  0
 
-static lcd_t lcd;
+// TODO Move to configuration
+//
+#define EXAMPLE_LCD_PIXEL_CLOCK_HZ    (400 * 1000)
+#define EXAMPLE_PIN_NUM_SDA           22
+#define EXAMPLE_PIN_NUM_SCL           23
+#define EXAMPLE_PIN_NUM_RST           16
+#define EXAMPLE_I2C_HW_ADDR           0x3C
+
+#define EXAMPLE_LCD_CMD_BITS           8
+#define EXAMPLE_LCD_PARAM_BITS         8
+
+#define EXAMPLE_LCD_H_RES              128
+#define EXAMPLE_LCD_V_RES              64
+
+StatusDisplay StatusDisplay::sStatusDisplay;
 
 esp_err_t StatusDisplay::Init()
 {
     ESP_LOGI(TAG, "StatusDisplay::Init()");
 
-    lcdDefault(&lcd);
+    ESP_LOGI(TAG, "Initialize I2C bus");
+    i2c_master_bus_handle_t i2c_bus = NULL;
+    i2c_master_bus_config_t bus_config = {
+        .i2c_port = I2C_BUS_PORT,
+        .sda_io_num = (gpio_num_t )EXAMPLE_PIN_NUM_SDA,
+        .scl_io_num = (gpio_num_t )EXAMPLE_PIN_NUM_SCL,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
+        .flags = {
+            .enable_internal_pullup = true,
+        }
+    };
+    ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus)); 
 
-    lcdInit(&lcd);
+    ESP_LOGI(TAG, "Install panel IO");
+    esp_lcd_panel_io_handle_t io_handle = NULL;
+    esp_lcd_panel_io_i2c_config_t io_config = {
+        .dev_addr = EXAMPLE_I2C_HW_ADDR,
+        .control_phase_bytes = 1,  
+        .dc_bit_offset = 6,                     // According to SSD1306 datasheet
+        .lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS,   // According to SSD1306 datasheet
+        .lcd_param_bits = EXAMPLE_LCD_CMD_BITS, // According to SSD1306 datasheet
+        .scl_speed_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ,
+    };
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
 
-    /* Clear previous data on LCD */
-    lcd_err_t ret = lcdClear(&lcd);
+    ESP_LOGI(TAG, "Install SSD1306 panel driver");
+    esp_lcd_panel_handle_t panel_handle = NULL;
+    esp_lcd_panel_dev_config_t panel_config = {
+        .reset_gpio_num = EXAMPLE_PIN_NUM_RST,
+        .bits_per_pixel = 1,
+    };
 
-    assert_lcd(ret);
+    esp_lcd_panel_ssd1306_config_t ssd1306_config = {
+        .height = EXAMPLE_LCD_V_RES,
+    };
+    panel_config.vendor_config = &ssd1306_config;
+    ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io_handle, &panel_config, &panel_handle));
 
-     /* Custom text */
-    char buffer[16] = "E";
-    float version = 1.0f;
-    char initial[2] = {'J', 'M'};
-    sprintf(buffer, "ESP v%.1f %c%c", version, initial[0], initial[1]);
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
 
-    /* Set text */
-    ret = lcdSetText(&lcd, buffer, 0, 0);
+    ESP_LOGI(TAG, "Initialize LVGL");
+    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    lvgl_port_init(&lvgl_cfg);
 
-    /* Check lcd status */
-    assert_lcd(ret);
+    const lvgl_port_display_cfg_t disp_cfg = {
+        .io_handle = io_handle,
+        .panel_handle = panel_handle,
+        .buffer_size = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES,
+        .double_buffer = true,
+        .hres = EXAMPLE_LCD_H_RES,
+        .vres = EXAMPLE_LCD_V_RES,
+        .monochrome = true,
+        .rotation = {
+            .swap_xy = false,
+            .mirror_x = false,
+            .mirror_y = false,
+        }
+    };
+
+    lv_disp_t *disp = lvgl_port_add_disp(&disp_cfg);
+
+    /* Rotation of the screen */
+    lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
+
+    lv_obj_t *scr = lv_disp_get_scr_act(disp);
+    lv_obj_t *label = lv_label_create(scr);
+    lv_label_set_text(label, "ACME Dishwasher");
+    lv_obj_set_width(label, disp->driver->hor_res);
+    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
@@ -42,41 +114,15 @@ esp_err_t StatusDisplay::Init()
 
 void StatusDisplay::SetStopped()
 {
-    //lcd_err_t ret = lcdClear();
-    //lcdAssert(ret);
-
     ESP_LOGI(TAG, "Setting status to stopped");
-
-//     lcdClear(&lcd);
-
-//   /* Custom text */
-//   char buffer[16] = "E";
-//   float version = 1.0f;
-//   char initial[2] = {'J', 'M'};
-//   //sprintf(buffer, "ESP v%.1f %c%c", version, initial[0], initial[1]);
-
-//   /* Set text */
-
-//   lcd_err_t ret = lcdSetText(&lcd, buffer, 0, 0);
-
-//   /* Check lcd status */
-//   assert_lcd(ret);
 }
 
 void StatusDisplay::SetRunning()
 {
     ESP_LOGI(TAG, "Setting status to running");
-    char buffer[15] = "RUNNING";
-    lcd_err_t ret = lcdSetText(&lcd, buffer, 0, 0);
-    assert_lcd(ret);
 }
 
 void StatusDisplay::SetPaused()
 {
     ESP_LOGI(TAG, "Setting status to paused");
-
-    // char buffer[15] = "PAUSED";
-     
-    // lcd_err_t ret = lcdSetText(buffer, 0, 0);
-    // lcdAssert(ret);
 }

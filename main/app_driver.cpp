@@ -12,7 +12,6 @@
 #include <app/util/generic-callbacks.h>
 #include <protocols/interaction_model/StatusCode.h>
 #include "dishwasher_manager.h"
-#include "1602_lcd.h"
 
 #include <esp_debug_helpers.h>
 

@@ -112,6 +112,20 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 1.2.6
+  espressif/esp_lvgl_port:
+    component_hash: b43dc04720d126cbfe14d53a84787e4c24b7bd7f15468e224c930ad3ffb32258
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.4'
+    - name: lvgl/lvgl
+      registry_url: https://components.espressif.com
+      require: public
+      version: ^8
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.4.0
   espressif/esp_rcp_update:
     component_hash: 37f535edd527a45faeaad649c0c56af36e5399074e52d83f0990fce466844dde
     dependencies:
@@ -177,26 +191,35 @@ dependencies:
       type: service
     version: 1.8.2
   espressif/rmaker_common:
-    component_hash: f8bb0ed032c01e98beff39e6787b0bc927f79416d9f82766831ca27588f15393
+    component_hash: 58b81e26b94772d680b4f292e426bf975b01e71a52fbc5c5c143423fc0e5f633
     dependencies: []
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.4.9
+    version: 1.4.10
   idf:
     source:
       type: idf
     version: 5.4.1
+  lvgl/lvgl:
+    component_hash: 7b7ee85e48c2eb35bb242a8c7e0e4cd702e150541afb3f69089fb7ba81554d14
+    dependencies: []
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 8.3.0
 direct_dependencies:
 - espressif/button
 - espressif/esp_delta_ota
 - espressif/esp_encrypted_img
 - espressif/esp_insights
+- espressif/esp_lvgl_port
 - espressif/esp_rcp_update
 - espressif/esp_secure_cert_mgr
 - espressif/json_generator
 - espressif/json_parser
 - espressif/mdns
-manifest_hash: b98152a352c135fa57f50e1ef08777b20547ee66d4ee075fc8eb2cbee6b45c75
+- lvgl/lvgl
+manifest_hash: be4a23fac4623029a2ba3a62f09943b62678f6ebfcd3ffedbc7048adf12d2f7a
 target: esp32c6
 version: 2.0.0

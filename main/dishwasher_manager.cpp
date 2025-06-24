@@ -3,6 +3,7 @@
 #include "esp_log.h"
 
 #include <app/clusters/operational-state-server/operational-state-server.h>
+#include <app/clusters/mode-base-server/mode-base-server.h>
 
 #include "status_display.h"
 #include "mode_selector.h"
@@ -31,22 +32,42 @@ OperationalStateEnum DishwasherManager::GetOperationalState()
     return mState;
 }
 
+uint8_t DishwasherManager::GetCurrentMode() 
+{
+    return mMode;
+}
+
 void DishwasherManager::UpdateDishwasherDisplay()
 {
     ESP_LOGI(TAG, "UpdateDishwasherDisplay called!");
 
     OperationalStateEnum opState = DishwasherMgr().GetOperationalState();
 
+    char *mode = "Normal";
+
+    DishwasherModeDelegate *delegate = (DishwasherModeDelegate *)DishwasherMode::GetDelegate();
+
+    if(delegate != nullptr) {
+        char buffer[64];
+        MutableCharSpan label(buffer);
+
+        delegate->GetModeLabelByIndex(mMode, label);
+
+        ESP_LOGI(TAG, "Fetched mode label \"%s\"", buffer);
+
+        //mode = buffer;
+    }
+
     switch (opState)
     {
     case OperationalStateEnum::kRunning:
-        StatusDisplayMgr().SetRunning();
+        StatusDisplayMgr().UpdateDisplay(RUNNING, mode);
         break;
     case OperationalStateEnum::kPaused:
-        StatusDisplayMgr().SetPaused();
+        StatusDisplayMgr().UpdateDisplay(PAUSED, mode);
         break;
     case OperationalStateEnum::kStopped:
-        StatusDisplayMgr().SetStopped();
+        StatusDisplayMgr().UpdateDisplay(STOPPED, mode);
         break;
     case OperationalStateEnum::kError:
         // sDishwasherLED.Blink(100);

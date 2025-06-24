@@ -132,13 +132,15 @@ private:
     CHIP_ERROR Init() override;
     void HandleChangeToMode(uint8_t mode, ModeBase::Commands::ChangeToModeResponse::Type & response) override;
 
-    CHIP_ERROR GetModeLabelByIndex(uint8_t modeIndex, MutableCharSpan & label) override;
+   
     CHIP_ERROR GetModeValueByIndex(uint8_t modeIndex, uint8_t & value) override;
     CHIP_ERROR GetModeTagsByIndex(uint8_t modeIndex, DataModel::List<ModeTagStructType> & tags) override;
 
     
 public:
     ~DishwasherModeDelegate() override = default;
+
+    CHIP_ERROR GetModeLabelByIndex(uint8_t modeIndex, MutableCharSpan & label) override;
 
     void PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t * value);
 

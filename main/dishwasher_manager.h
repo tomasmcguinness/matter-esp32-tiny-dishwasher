@@ -20,6 +20,8 @@ public:
     void SelectNextMode();
     void SelectPreviousMode();
 
+    uint8_t GetCurrentMode();
+
 private:
     friend DishwasherManager & DishwasherMgr(void);
 

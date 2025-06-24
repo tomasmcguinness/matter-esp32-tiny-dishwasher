@@ -152,11 +152,6 @@ void OperationalState::Shutdown()
     }
 }
 
-// OperationalState::Instance *OperationalState::GetInstance()
-// {
-//     return gOperationalStateInstance;
-// }
-
 OperationalState::OperationalStateDelegate *OperationalState::GetDelegate()
 {
     return gOperationalStateDelegate;
@@ -199,10 +194,6 @@ CHIP_ERROR DishwasherModeDelegate::Init()
     ESP_LOGI(TAG, "DishwasherModeDelegate::Init()");
 
     gDishwasherModeInstance = mInstance;
-    // if(mInstance != nullptr) 
-    // {
-    //     ESP_LOGI(TAG, "DishwasherModeDelegate::Init() - we have the instance!");
-    // }
 
     return CHIP_NO_ERROR;
 }
@@ -211,7 +202,7 @@ CHIP_ERROR DishwasherModeDelegate::Init()
 void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type & response)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::HandleChangeToMode()");
-    //DishwasherMgr().UpdateOperationState(OperationalStateEnum::kStopped);
+    DishwasherManager().UpdateMode(NewMode);
     response.status = to_underlying(ModeBase::StatusCode::kSuccess);
 }
 
@@ -229,8 +220,6 @@ CHIP_ERROR DishwasherModeDelegate::GetModeLabelByIndex(uint8_t modeIndex, chip::
 CHIP_ERROR DishwasherModeDelegate::GetModeValueByIndex(uint8_t modeIndex, uint8_t & value)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeValueByIndex(%d)", modeIndex);
-
-    //esp_backtrace_print(20);
 
     if (modeIndex >= MATTER_ARRAY_SIZE(kModeOptions))
     {
@@ -335,12 +324,6 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     uint8_t currentMode = gDishwasherModeInstance->GetCurrentMode();
 
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
-
-    //gDishwasherModeInstance->UpdateCurrentMode(ModeHeavy);
-
-    //gDishwasherModeDelegate->mEndpointId = endpointId;
-    //uint8_t value = ModeHeavy;
-    //gDishwasherModeDelegate->PostAttributeChangeCallback(chip::app::Clusters::DishwasherMode::Attributes::CurrentMode::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
 }
 
 esp_err_t app_driver_init()

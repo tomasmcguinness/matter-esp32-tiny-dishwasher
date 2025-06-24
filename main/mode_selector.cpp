@@ -82,14 +82,14 @@ esp_err_t ModeSelector::Init()
 
     ESP_LOGI(TAG, "install pcnt channels");
     pcnt_chan_config_t chan_a_config = {
-        .edge_gpio_num = GPIO_NUM_2,
-        .level_gpio_num = GPIO_NUM_11,
+        .edge_gpio_num = GPIO_NUM_18,
+        .level_gpio_num = GPIO_NUM_20,
     };
     pcnt_channel_handle_t pcnt_chan_a = NULL;
     ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_a_config, &pcnt_chan_a));
     pcnt_chan_config_t chan_b_config = {
-        .edge_gpio_num = GPIO_NUM_11,
-        .level_gpio_num = GPIO_NUM_2,
+        .edge_gpio_num = GPIO_NUM_20,
+        .level_gpio_num = GPIO_NUM_18,
     };
     pcnt_channel_handle_t pcnt_chan_b = NULL;
     ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit, &chan_b_config, &pcnt_chan_b));

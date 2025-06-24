@@ -102,47 +102,48 @@ esp_err_t StatusDisplay::Init()
 
     lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
     lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, "ACME Dishwasher");
+    lv_label_set_text(label, "Dishwasher");
     lv_obj_set_width(label, mDisp->driver->hor_res);
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+
+    mModeLabel = lv_label_create(scr);
+
+    lv_label_set_text(mModeLabel, "");
+    lv_obj_set_width(mModeLabel, mDisp->driver->hor_res);
+    lv_obj_align(mModeLabel, LV_ALIGN_LEFT_MID, 0, 0);
+
+    mStateLabel = lv_label_create(scr);
+
+    lv_label_set_text(mStateLabel, "");
+    lv_obj_set_width(mStateLabel, mDisp->driver->hor_res);
+    lv_obj_align(mStateLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_obj_set_style_bg_color(mStateLabel, lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(mStateLabel, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(mStateLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
     return ESP_OK;
 }
 
-void StatusDisplay::SetStopped()
+void StatusDisplay::UpdateDisplay(State state, const char* mode_text)
 {
-    ESP_LOGI(TAG, "Setting status to stopped");
+    ESP_LOGI(TAG, "Setting status");
 
-    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
-    lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, "STOPPED");
-    lv_obj_set_width(label, mDisp->driver->hor_res);
-    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
-    lv_obj_set_style_bg_color(label, lv_color_hex(0x000000), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(label, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_text_color(label, lv_color_hex(0xffffff), LV_PART_MAIN);
-}
+    char *state_text;
 
-void StatusDisplay::SetRunning()
-{
-    ESP_LOGI(TAG, "Setting status to running");
+    switch(state) {
+        case RUNNING:
+            state_text = "RUNNING";
+        break;
+        case STOPPED:
+            state_text = "STOPPED";
+        break;
+        case PAUSED:
+            state_text = "PAUSED";
+        break;
+    }
 
-    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
-    lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, "RUNNING");
-    lv_obj_set_width(label, mDisp->driver->hor_res);
-    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
-}
-
-void StatusDisplay::SetPaused()
-{
-    ESP_LOGI(TAG, "Setting status to paused");
-
-    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
-    lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, "PAUSED");
-    lv_obj_set_width(label, mDisp->driver->hor_res);
-    lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_label_set_text(mStateLabel, state_text);
+    lv_label_set_text(mModeLabel, mode_text);
 }

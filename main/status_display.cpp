@@ -29,6 +29,16 @@ static const char *TAG = "status_display";
 
 StatusDisplay StatusDisplay::sStatusDisplay;
 
+// void my_timer(lv_timer_t * timer)
+// {
+//     ESP_LOGI(TAG, "lv_timer tick");
+
+//     uint32_t *user_data = lv_timer_get_user_data(timer);
+
+//     lv_label_set_text(mStateLabel, "STATUS");
+//     lv_label_set_text(mModeLabel, "MODE");
+// }
+
 esp_err_t StatusDisplay::Init()
 {
     ESP_LOGI(TAG, "StatusDisplay::Init()");
@@ -37,8 +47,8 @@ esp_err_t StatusDisplay::Init()
     i2c_master_bus_handle_t i2c_bus = NULL;
     i2c_master_bus_config_t bus_config = {
         .i2c_port = I2C_BUS_PORT,
-        .sda_io_num = (gpio_num_t )EXAMPLE_PIN_NUM_SDA,
-        .scl_io_num = (gpio_num_t )EXAMPLE_PIN_NUM_SCL,
+        .sda_io_num = (gpio_num_t)EXAMPLE_PIN_NUM_SDA,
+        .scl_io_num = (gpio_num_t)EXAMPLE_PIN_NUM_SCL,
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .glitch_ignore_cnt = 7,
         .flags = {
@@ -102,7 +112,7 @@ esp_err_t StatusDisplay::Init()
 
     lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
     lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, "Dishwasher");
+    lv_label_set_text(label, "DISHWASHER");
     lv_obj_set_width(label, mDisp->driver->hor_res);
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
@@ -123,6 +133,9 @@ esp_err_t StatusDisplay::Init()
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
+    //static uint32_t user_data = 10;
+    //lv_timer_t * timer = lv_timer_create(my_timer, 500,  &user_data);
+
     return ESP_OK;
 }
 
@@ -141,6 +154,9 @@ void StatusDisplay::UpdateDisplay(State state, const char* mode_text)
         break;
         case PAUSED:
             state_text = "PAUSED";
+        break;
+        default:
+            state_text = "ERROR";
         break;
     }
 

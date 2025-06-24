@@ -44,18 +44,19 @@ void DishwasherManager::UpdateDishwasherDisplay()
     OperationalStateEnum opState = DishwasherMgr().GetOperationalState();
 
     char *mode = "Normal";
-
+    char buffer[64];
+    
     DishwasherModeDelegate *delegate = (DishwasherModeDelegate *)DishwasherMode::GetDelegate();
 
     if(delegate != nullptr) {
-        char buffer[64];
+       
         MutableCharSpan label(buffer);
 
         delegate->GetModeLabelByIndex(mMode, label);
 
         ESP_LOGI(TAG, "Fetched mode label \"%s\"", buffer);
 
-        //mode = buffer;
+        mode = buffer;
     }
 
     switch (opState)

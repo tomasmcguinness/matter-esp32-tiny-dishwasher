@@ -256,18 +256,21 @@ Status DishwasherModeDelegate::SetDishwasherMode(uint8_t modeValue)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::SetDishwasherMode");
 
+    // We can only update the DishwasherMode when it's not running.
+    //
+
     VerifyOrReturnError(DishwasherMode::GetInstance() != nullptr, Status::InvalidInState);
 
     if (!DishwasherMode::GetInstance()->IsSupportedMode(modeValue))
     {
-        ChipLogError(AppServer, "SetWaterHeaterMode bad mode");
+        ChipLogError(AppServer, "SetDishwasherMode bad mode");
         return Status::ConstraintError;
     }
 
     Status status = DishwasherMode::GetInstance()->UpdateCurrentMode(modeValue);
     if (status != Status::Success)
     {
-        ChipLogError(AppServer, "SetWaterHeaterMode updateMode failed 0x%02x", to_underlying(status));
+        ChipLogError(AppServer, "SetDishwasherMode updateMode failed 0x%02x", to_underlying(status));
         return status;
     }
 
@@ -277,12 +280,6 @@ Status DishwasherModeDelegate::SetDishwasherMode(uint8_t modeValue)
 void DishwasherModeDelegate::PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t *value)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::PostAttributeChangeCallback");
-
-    // chip::app::ConcreteAttributePath info;
-    // info.mClusterId = Clusters::OperationalState::Id;
-    // info.mAttributeId = attributeId;
-    // info.mEndpointId = this->mEndpointId;
-    //MatterPostAttributeChangeCallback(info, type, size, value);
 }
 
 ModeBase::Instance * DishwasherMode::GetInstance()

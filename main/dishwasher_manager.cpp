@@ -45,7 +45,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
     char *mode = "Normal";
     char buffer[64];
-    
+
     DishwasherModeDelegate *delegate = (DishwasherModeDelegate *)DishwasherMode::GetDelegate();
 
     if(delegate != nullptr) {
@@ -53,8 +53,6 @@ void DishwasherManager::UpdateDishwasherDisplay()
         MutableCharSpan label(buffer);
 
         delegate->GetModeLabelByIndex(mMode, label);
-
-        ESP_LOGI(TAG, "Fetched mode label \"%s\"", buffer);
 
         mode = buffer;
     }

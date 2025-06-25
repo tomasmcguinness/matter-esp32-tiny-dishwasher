@@ -120,25 +120,7 @@ esp_err_t ModeSelector::Init()
     ESP_LOGI(TAG, "start pcnt unit");
     ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 
-    // Listen for the click.
-    //
-    // button_config_t config;
-    // memset(&config, 0, sizeof(button_config_t));
-
-    // config.type = BUTTON_TYPE_GPIO;
-    // config.gpio_button_config.gpio_num = GPIO_NUM_10;
-    // config.gpio_button_config.active_level = 0;
-
-    // To enable powersafe, a setting must be set first via menuconfig
-    // config.gpio_button_config.enable_power_save = true;
-
-    //button_handle_t handle = iot_button_create(&config);
-
-    //ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_PRESS_DOWN, app_driver_button_single_click_cb, NULL));
-
     xTaskCreate(pulse_counter_monitor_task, "pulse_counter_monitor_task", 4096, NULL, 10, NULL);
-
-    //client::set_request_callback(app_driver_client_invoke_command_callback, app_driver_client_group_invoke_command_callback, NULL);
 
     return ESP_OK;
 }

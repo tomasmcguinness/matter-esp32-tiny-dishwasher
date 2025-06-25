@@ -202,7 +202,7 @@ CHIP_ERROR DishwasherModeDelegate::Init()
 void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type & response)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::HandleChangeToMode()");
-    DishwasherManager().UpdateMode(NewMode);
+    DishwasherMgr().UpdateMode(NewMode);
     response.status = to_underlying(ModeBase::StatusCode::kSuccess);
 }
 
@@ -322,63 +322,6 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
 
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
 }
-
-// static void app_driver_button_press_up_cb(void *arg, void *data)
-// {
-//     ESP_LOGI(TAG, "Button Press Up");
-
-//     if (iot_button_get_ticks_time((button_handle_t)arg) < 1000)
-//     {
-//         ESP_LOGI(TAG, "Single Click");
-//         client::request_handle_t req_handle;
-//         req_handle.type = esp_matter::client::INVOKE_CMD;
-//         req_handle.command_path.mClusterId = OnOff::Id;
-//         req_handle.command_path.mCommandId = OnOff::Commands::Toggle::Id;
-
-//         // lock::chip_stack_lock(portMAX_DELAY);
-//         // client::cluster_update(switch_endpoint_id, &req_handle);
-//         // lock::chip_stack_unlock();
-//     }
-//     else
-//     {
-//         ESP_LOGI(TAG, "Long Press");
-//         swap_dimmer_direction();
-//     }
-// }
-
-// static void app_driver_button_dimming_cb(void *arg, void *data)
-// {
-//     ESP_LOGI(TAG, "Long Press Hold");
-
-//     uint16_t hold_count = iot_button_get_long_press_hold_cnt((button_handle_t)arg);
-//     uint32_t hold_time = iot_button_get_ticks_time((button_handle_t)arg);
-
-//     ESP_LOGI(TAG, "Long Press Hold Count: %d", hold_count);
-//     ESP_LOGI(TAG, "Long Press Hold Time: %ld", hold_time);
-
-//     LevelControl::Commands::Step::Type stepCommand;
-//     stepCommand.stepMode = current_step_direction;
-//     stepCommand.stepSize = 3;
-//     stepCommand.transitionTime.SetNonNull(0);
-//     stepCommand.optionsMask = static_cast<chip::BitMask<chip::app::Clusters::LevelControl::LevelControlOptions>>(0U);
-//     stepCommand.optionsOverride = static_cast<chip::BitMask<chip::app::Clusters::LevelControl::LevelControlOptions>>(0U);
-
-//     client::request_handle_t req_handle;
-//     req_handle.type = esp_matter::client::INVOKE_CMD;
-//     req_handle.command_path.mClusterId = LevelControl::Id;
-//     req_handle.command_path.mCommandId = LevelControl::Commands::Step::Id;
-//     req_handle.request_data = &stepCommand;
-
-//     lock::chip_stack_lock(portMAX_DELAY);
-//     client::cluster_update(switch_endpoint_id, &req_handle);
-//     lock::chip_stack_unlock();
-// }
-
-// static void app_driver_button_long_press_up_cb(void *arg, void *data)
-// {
-//     ESP_LOGI(TAG, "Long Press Up");
-//     //swap_dimmer_direction();
-// }
 
 static void app_driver_button_long_press_start_cb(void *arg, void *data)
 {

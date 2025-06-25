@@ -86,14 +86,18 @@ static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint
 {
      ESP_LOGI(TAG,"app_attribute_update_cb");
 
-    if (type == PRE_UPDATE)
+    if (type == POST_UPDATE)
     {
         esp_err_t err = ESP_OK;
         if (endpoint_id == 0x01) {
             if (cluster_id == OnOff::Id) {
                 if (attribute_id == OnOff::Attributes::OnOff::Id) {
-                    ESP_LOGI(TAG,"OnOff attribute update received!");
-                    DishwasherMgr().TogglePower();
+                    ESP_LOGI(TAG, "OnOff attribute updated to: %s!", val->val.b ? "on" : "off");
+                    if(val->val.b) {
+                        DishwasherMgr().TurnOnPower();
+                    } else {
+                        DishwasherMgr().TurnOffPower();
+                    }
                 }
             }
         }

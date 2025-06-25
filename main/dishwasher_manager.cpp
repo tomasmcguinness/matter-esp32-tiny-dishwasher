@@ -47,6 +47,18 @@ void DishwasherManager::TogglePower()
     UpdateDishwasherDisplay();
 }
 
+void DishwasherManager::TurnOnPower() 
+{
+    mIsPoweredOn = true;
+    UpdateDishwasherDisplay();
+}
+
+void DishwasherManager::TurnOffPower()
+{
+    mIsPoweredOn = false;
+    UpdateDishwasherDisplay();
+}
+
 bool DishwasherManager::IsPoweredOn()
 {
     return mIsPoweredOn;
@@ -75,9 +87,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
         StatusDisplayMgr().TurnOff();
     }
 
-    OperationalStateEnum opState = DishwasherMgr().GetOperationalState();
-
-    char *mode = "Normal";
+    char *mode = "Normal"; // Default value.
     char buffer[64];
 
     DishwasherModeDelegate *delegate = (DishwasherModeDelegate *)DishwasherMode::GetDelegate();
@@ -91,7 +101,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
         mode = buffer;
     }
 
-    switch (opState)
+    switch (mState)
     {
     case OperationalStateEnum::kRunning:
         StatusDisplayMgr().UpdateDisplay(RUNNING, mode);

@@ -32,6 +32,18 @@ void DishwasherManager::TogglePower()
     ESP_LOGI(TAG,"Power is %s", mIsPoweredOn ? "on" : "off");
     mIsPoweredOn = !mIsPoweredOn;
     ESP_LOGI(TAG,"Power is %s", mIsPoweredOn ? "on" : "off");
+
+    uint16_t endpoint_id = 0x01;
+    uint32_t cluster_id = OnOff::Id;
+    uint32_t attribute_id = OnOff::Attributes::OnOff::Id;
+
+    esp_matter::attribute_t *attribute = esp_matter::attribute::get(endpoint_id, cluster_id, attribute_id);
+
+    esp_matter_attr_val_t val = esp_matter_invalid(NULL);
+    esp_matter::attribute::get_val(attribute, &val);
+    val.val.b = mIsPoweredOn;
+    esp_matter::attribute::update(endpoint_id, cluster_id, attribute_id, &val);
+
     UpdateDishwasherDisplay();
 }
 

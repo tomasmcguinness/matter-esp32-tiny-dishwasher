@@ -27,12 +27,25 @@ esp_err_t DishwasherManager::Init()
     return ESP_OK;
 }
 
+void DishwasherManager::TogglePower()
+{
+    ESP_LOGI(TAG,"Power is %s", mIsPoweredOn ? "on" : "off");
+    mIsPoweredOn = !mIsPoweredOn;
+    ESP_LOGI(TAG,"Power is %s", mIsPoweredOn ? "on" : "off");
+    UpdateDishwasherDisplay();
+}
+
+bool DishwasherManager::IsPoweredOn()
+{
+    return mIsPoweredOn;
+}
+
 OperationalStateEnum DishwasherManager::GetOperationalState()
 {
     return mState;
 }
 
-uint8_t DishwasherManager::GetCurrentMode() 
+uint8_t DishwasherManager::GetCurrentMode()
 {
     return mMode;
 }
@@ -41,6 +54,15 @@ void DishwasherManager::UpdateDishwasherDisplay()
 {
     ESP_LOGI(TAG, "UpdateDishwasherDisplay called!");
 
+    if (mIsPoweredOn)
+    {
+        StatusDisplayMgr().TurnOn();
+    }
+    else
+    {
+        StatusDisplayMgr().TurnOff();
+    }
+
     OperationalStateEnum opState = DishwasherMgr().GetOperationalState();
 
     char *mode = "Normal";
@@ -48,8 +70,8 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
     DishwasherModeDelegate *delegate = (DishwasherModeDelegate *)DishwasherMode::GetDelegate();
 
-    if(delegate != nullptr) {
-       
+    if (delegate != nullptr)
+    {
         MutableCharSpan label(buffer);
 
         delegate->GetModeLabelByIndex(mMode, label);
@@ -100,14 +122,14 @@ void DishwasherManager::SelectNextMode()
     ESP_LOGI(TAG, "SelectNextMode called!");
     mMode++;
 
-    if(mMode > 2) {
+    // Roll over if we reach the end
+    //
+    if (mMode > 2)
+    {
         mMode = 0;
     }
 
     ESP_LOGI(TAG, "Selected Mode: %d", mMode);
-    uint8_t current_mode = DishwasherMode::GetInstance()->GetCurrentMode();
-
-    ESP_LOGI(TAG, "Current Mode: %d", current_mode);
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(WorkHandler, mMode);
 
@@ -119,10 +141,15 @@ void DishwasherManager::SelectPreviousMode()
     uint8_t current_mode = DishwasherMode::GetInstance()->GetCurrentMode();
 
     ESP_LOGI(TAG, "Current Mode: %d", current_mode);
-    
-    if(mMode == 0) {
+
+    // Roll over if we reach the start
+    //
+    if (mMode == 0)
+    {
         mMode = 2;
-    } else {
+    }
+    else
+    {
         mMode--;
     }
 

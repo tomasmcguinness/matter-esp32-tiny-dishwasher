@@ -22,6 +22,9 @@ public:
 
     uint8_t GetCurrentMode();
 
+    void TogglePower();
+    bool IsPoweredOn();
+
 private:
     friend DishwasherManager & DishwasherMgr(void);
 
@@ -29,6 +32,8 @@ private:
     
     OperationalStateEnum mState;
     uint8_t mMode;
+
+    bool mIsPoweredOn;
 };
 
 inline DishwasherManager & DishwasherMgr(void)

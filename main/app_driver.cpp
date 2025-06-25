@@ -12,8 +12,8 @@
 #include <app/util/generic-callbacks.h>
 #include <protocols/interaction_model/StatusCode.h>
 #include "dishwasher_manager.h"
-
 #include <esp_debug_helpers.h>
+#include <iot_button.h>
 
 using namespace chip;
 using namespace chip::app;
@@ -323,8 +323,90 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
 }
 
+// static void app_driver_button_press_up_cb(void *arg, void *data)
+// {
+//     ESP_LOGI(TAG, "Button Press Up");
+
+//     if (iot_button_get_ticks_time((button_handle_t)arg) < 1000)
+//     {
+//         ESP_LOGI(TAG, "Single Click");
+//         client::request_handle_t req_handle;
+//         req_handle.type = esp_matter::client::INVOKE_CMD;
+//         req_handle.command_path.mClusterId = OnOff::Id;
+//         req_handle.command_path.mCommandId = OnOff::Commands::Toggle::Id;
+
+//         // lock::chip_stack_lock(portMAX_DELAY);
+//         // client::cluster_update(switch_endpoint_id, &req_handle);
+//         // lock::chip_stack_unlock();
+//     }
+//     else
+//     {
+//         ESP_LOGI(TAG, "Long Press");
+//         swap_dimmer_direction();
+//     }
+// }
+
+// static void app_driver_button_dimming_cb(void *arg, void *data)
+// {
+//     ESP_LOGI(TAG, "Long Press Hold");
+
+//     uint16_t hold_count = iot_button_get_long_press_hold_cnt((button_handle_t)arg);
+//     uint32_t hold_time = iot_button_get_ticks_time((button_handle_t)arg);
+
+//     ESP_LOGI(TAG, "Long Press Hold Count: %d", hold_count);
+//     ESP_LOGI(TAG, "Long Press Hold Time: %ld", hold_time);
+
+//     LevelControl::Commands::Step::Type stepCommand;
+//     stepCommand.stepMode = current_step_direction;
+//     stepCommand.stepSize = 3;
+//     stepCommand.transitionTime.SetNonNull(0);
+//     stepCommand.optionsMask = static_cast<chip::BitMask<chip::app::Clusters::LevelControl::LevelControlOptions>>(0U);
+//     stepCommand.optionsOverride = static_cast<chip::BitMask<chip::app::Clusters::LevelControl::LevelControlOptions>>(0U);
+
+//     client::request_handle_t req_handle;
+//     req_handle.type = esp_matter::client::INVOKE_CMD;
+//     req_handle.command_path.mClusterId = LevelControl::Id;
+//     req_handle.command_path.mCommandId = LevelControl::Commands::Step::Id;
+//     req_handle.request_data = &stepCommand;
+
+//     lock::chip_stack_lock(portMAX_DELAY);
+//     client::cluster_update(switch_endpoint_id, &req_handle);
+//     lock::chip_stack_unlock();
+// }
+
+// static void app_driver_button_long_press_up_cb(void *arg, void *data)
+// {
+//     ESP_LOGI(TAG, "Long Press Up");
+//     //swap_dimmer_direction();
+// }
+
+static void app_driver_button_long_press_start_cb(void *arg, void *data)
+{
+    ESP_LOGI(TAG, "Long Press Started");
+    DishwasherMgr().TogglePower();
+}
+
 esp_err_t app_driver_init()
 {
     esp_err_t err = ESP_OK;
+
+    // Create an OnOff Button.
+    //
+    button_config_t config;
+    memset(&config, 0, sizeof(button_config_t));
+
+    config.type = BUTTON_TYPE_GPIO;
+    config.gpio_button_config.gpio_num = GPIO_NUM_0;
+    config.gpio_button_config.active_level = 1;
+
+    button_handle_t handle = iot_button_create(&config);
+
+    ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_LONG_PRESS_START, app_driver_button_long_press_start_cb, NULL));
+    //ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_LONG_PRESS_START, app_driver_button_long_press_start_cb, NULL));
+    //ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_LONG_PRESS_HOLD, app_driver_button_long_press_hold_cb, NULL));
+
+    // client::set_request_callback(app_driver_client_invoke_command_callback,
+    //                              app_driver_client_group_invoke_command_callback, NULL);
+
     return err;
 }

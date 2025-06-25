@@ -11,21 +11,21 @@
 
 static const char *TAG = "status_display";
 
-#define I2C_BUS_PORT  0
+#define I2C_BUS_PORT 0
 
 // TODO Move to configuration
 //
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ    (400 * 1000)
-#define EXAMPLE_PIN_NUM_SDA           22
-#define EXAMPLE_PIN_NUM_SCL           23
-#define EXAMPLE_PIN_NUM_RST           16
-#define EXAMPLE_I2C_HW_ADDR           0x3C
+#define EXAMPLE_LCD_PIXEL_CLOCK_HZ (400 * 1000)
+#define EXAMPLE_PIN_NUM_SDA 22
+#define EXAMPLE_PIN_NUM_SCL 23
+#define EXAMPLE_PIN_NUM_RST 16
+#define EXAMPLE_I2C_HW_ADDR 0x3C
 
-#define EXAMPLE_LCD_CMD_BITS           8
-#define EXAMPLE_LCD_PARAM_BITS         8
+#define EXAMPLE_LCD_CMD_BITS 8
+#define EXAMPLE_LCD_PARAM_BITS 8
 
-#define EXAMPLE_LCD_H_RES              128
-#define EXAMPLE_LCD_V_RES              64
+#define EXAMPLE_LCD_H_RES 128
+#define EXAMPLE_LCD_V_RES 64
 
 StatusDisplay StatusDisplay::sStatusDisplay;
 
@@ -53,15 +53,14 @@ esp_err_t StatusDisplay::Init()
         .glitch_ignore_cnt = 7,
         .flags = {
             .enable_internal_pullup = true,
-        }
-    };
-    ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus)); 
+        }};
+    ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus));
 
     ESP_LOGI(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t io_config = {
         .dev_addr = EXAMPLE_I2C_HW_ADDR,
-        .control_phase_bytes = 1,  
+        .control_phase_bytes = 1,
         .dc_bit_offset = 6,                     // According to SSD1306 datasheet
         .lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS,   // According to SSD1306 datasheet
         .lcd_param_bits = EXAMPLE_LCD_CMD_BITS, // According to SSD1306 datasheet
@@ -70,7 +69,7 @@ esp_err_t StatusDisplay::Init()
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
 
     ESP_LOGI(TAG, "Install SSD1306 panel driver");
-    esp_lcd_panel_handle_t panel_handle = NULL;
+    //esp_lcd_panel_handle_t panel_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_RST,
         .bits_per_pixel = 1,
@@ -80,11 +79,10 @@ esp_err_t StatusDisplay::Init()
         .height = EXAMPLE_LCD_V_RES,
     };
     panel_config.vendor_config = &ssd1306_config;
-    ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io_handle, &panel_config, &panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io_handle, &panel_config, &mPanelHandle));
 
-    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
-    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(mPanelHandle));
+    ESP_ERROR_CHECK(esp_lcd_panel_init(mPanelHandle));
 
     ESP_LOGI(TAG, "Initialize LVGL");
     const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
@@ -92,7 +90,7 @@ esp_err_t StatusDisplay::Init()
 
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
-        .panel_handle = panel_handle,
+        .panel_handle = mPanelHandle,
         .buffer_size = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES,
         .double_buffer = true,
         .hres = EXAMPLE_LCD_H_RES,
@@ -102,8 +100,7 @@ esp_err_t StatusDisplay::Init()
             .swap_xy = false,
             .mirror_x = false,
             .mirror_y = false,
-        }
-    };
+        }};
 
     mDisp = lvgl_port_add_disp(&disp_cfg);
 
@@ -133,30 +130,43 @@ esp_err_t StatusDisplay::Init()
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
-    //static uint32_t user_data = 10;
-    //lv_timer_t * timer = lv_timer_create(my_timer, 500,  &user_data);
+    // static uint32_t user_data = 10;
+    // lv_timer_t * timer = lv_timer_create(my_timer, 500,  &user_data);
 
     return ESP_OK;
 }
 
-void StatusDisplay::UpdateDisplay(State state, const char* mode_text)
+void StatusDisplay::TurnOn()
+{
+    ESP_LOGI(TAG, "Turning display on");
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(mPanelHandle, true));
+}
+
+void StatusDisplay::TurnOff()
+{
+    ESP_LOGI(TAG, "Turning display off");
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(mPanelHandle, false));
+}
+
+void StatusDisplay::UpdateDisplay(State state, const char *mode_text)
 {
     ESP_LOGI(TAG, "Setting status");
 
     char *state_text;
 
-    switch(state) {
-        case RUNNING:
-            state_text = "RUNNING";
+    switch (state)
+    {
+    case RUNNING:
+        state_text = "RUNNING";
         break;
-        case STOPPED:
-            state_text = "STOPPED";
+    case STOPPED:
+        state_text = "STOPPED";
         break;
-        case PAUSED:
-            state_text = "PAUSED";
+    case PAUSED:
+        state_text = "PAUSED";
         break;
-        default:
-            state_text = "ERROR";
+    default:
+        state_text = "ERROR";
         break;
     }
 

@@ -141,22 +141,18 @@ esp_err_t StatusDisplay::Init()
 void StatusDisplay::TurnOn()
 {
     ESP_LOGI(TAG, "Turning display on");
-    // ESP_ERROR_CHECK();
     esp_lcd_panel_disp_on_off(mPanelHandle, true);
 }
 
 void StatusDisplay::TurnOff()
 {
     ESP_LOGI(TAG, "Turning display off");
-    // ESP_ERROR_CHECK();
     esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
 void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t timeRemaining)
 {
     ESP_LOGI(TAG, "Setting status");
-
-    return;
 
     char *state_text;
 
@@ -189,7 +185,7 @@ void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t t
     }
     else
     {
-        //lv_label_set_text(mTimeRemainingLabel, "");
+        lv_label_set_text(mTimeRemainingLabel, "");
     }
 
     lv_label_set_text(mStateLabel, state_text);

@@ -9,6 +9,8 @@
 #include "mode_selector.h"
 #include "app_priv.h"
 
+#include <inttypes.h>
+
 static const char *TAG = "dishwasher_manager";
 
 using namespace chip;
@@ -17,6 +19,8 @@ using namespace chip::app::Clusters;
 using namespace chip::app::Clusters::OperationalState;
 
 DishwasherManager DishwasherManager::sDishwasher;
+
+TaskHandle_t xHandle = NULL;
 
 esp_err_t DishwasherManager::Init()
 {
@@ -27,11 +31,15 @@ esp_err_t DishwasherManager::Init()
     return ESP_OK;
 }
 
+uint32_t DishwasherManager::GetTimeRemaining()
+{
+    return mTimeRemaining;
+}
+
 void DishwasherManager::TogglePower()
 {
-    ESP_LOGI(TAG,"Power is %s", mIsPoweredOn ? "on" : "off");
     mIsPoweredOn = !mIsPoweredOn;
-    ESP_LOGI(TAG,"Power is %s", mIsPoweredOn ? "on" : "off");
+    ESP_LOGI(TAG, "Power is %s", mIsPoweredOn ? "on" : "off");
 
     uint16_t endpoint_id = 0x01;
     uint32_t cluster_id = OnOff::Id;
@@ -47,7 +55,7 @@ void DishwasherManager::TogglePower()
     UpdateDishwasherDisplay();
 }
 
-void DishwasherManager::TurnOnPower() 
+void DishwasherManager::TurnOnPower()
 {
     mIsPoweredOn = true;
     UpdateDishwasherDisplay();
@@ -64,6 +72,47 @@ bool DishwasherManager::IsPoweredOn()
     return mIsPoweredOn;
 }
 
+static void ProgramTick(void *arg)
+{
+    // Different Modes can have different times!
+    //
+    for (;;)
+    {
+        ESP_LOGI(TAG, "RunProgramTick");
+        OperationalStateEnum state = DishwasherMgr().GetOperationalState();
+
+        if (state == OperationalStateEnum::kRunning)
+        {
+            DishwasherMgr().MoveProgramAlongOneTick();
+        }
+
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void DishwasherManager::ToggleProgram()
+{
+    if (mState == OperationalStateEnum::kStopped)
+    {
+        mTimeRemaining = 30; // TODO Make this depend on the selected mode.
+        xTaskCreate(ProgramTick, "NAME", 4096, NULL, tskIDLE_PRIORITY, &xHandle);
+        UpdateOperationState(OperationalStateEnum::kRunning);
+    }
+    else if (mState == OperationalStateEnum::kRunning)
+    {
+        vTaskSuspend(xHandle);
+    }
+}
+
+void DishwasherManager::EndProgram()
+{
+    if (xHandle != NULL)
+    {
+        UpdateOperationState(OperationalStateEnum::kStopped);
+        vTaskDelete(xHandle);
+    }
+}
+
 OperationalStateEnum DishwasherManager::GetOperationalState()
 {
     return mState;
@@ -77,6 +126,8 @@ uint8_t DishwasherManager::GetCurrentMode()
 void DishwasherManager::UpdateDishwasherDisplay()
 {
     ESP_LOGI(TAG, "UpdateDishwasherDisplay called!");
+
+    ESP_LOGI(TAG, "Display: %s", mIsPoweredOn ? "on" : "off");
 
     if (mIsPoweredOn)
     {
@@ -101,16 +152,20 @@ void DishwasherManager::UpdateDishwasherDisplay()
         mode = buffer;
     }
 
+    //ESP_LOGI(TAG, "State: %d", mState);
+    //ESP_LOGI(TAG, "Mode: %s", mode);
+    //ESP_LOGI(TAG, "TimeRemaining: %lu", mTimeRemaining);
+
     switch (mState)
     {
     case OperationalStateEnum::kRunning:
-        StatusDisplayMgr().UpdateDisplay(RUNNING, mode);
+        StatusDisplayMgr().UpdateDisplay(RUNNING, mode, mTimeRemaining);
         break;
     case OperationalStateEnum::kPaused:
-        StatusDisplayMgr().UpdateDisplay(PAUSED, mode);
+        StatusDisplayMgr().UpdateDisplay(PAUSED, mode, mTimeRemaining);
         break;
     case OperationalStateEnum::kStopped:
-        StatusDisplayMgr().UpdateDisplay(STOPPED, mode);
+        StatusDisplayMgr().UpdateDisplay(STOPPED, mode, mTimeRemaining);
         break;
     case OperationalStateEnum::kError:
         // sDishwasherLED.Blink(100);
@@ -118,6 +173,15 @@ void DishwasherManager::UpdateDishwasherDisplay()
         break;
     default:
         break;
+    }
+}
+
+void DishwasherManager::MoveProgramAlongOneTick()
+{
+    mTimeRemaining--;
+    if (mTimeRemaining <= 0)
+    {
+        EndProgram();
     }
 }
 

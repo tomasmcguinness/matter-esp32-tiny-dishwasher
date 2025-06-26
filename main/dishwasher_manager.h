@@ -16,6 +16,8 @@ public:
 
     OperationalStateEnum GetOperationalState();
 
+    uint32_t GetTimeRemaining();
+
     void UpdateMode(uint8_t mode);
     void SelectNextMode();
     void SelectPreviousMode();
@@ -27,6 +29,10 @@ public:
     void TurnOffPower();
     bool IsPoweredOn();
 
+    void ToggleProgram();
+    void EndProgram();
+    void MoveProgramAlongOneTick();
+
 private:
     friend DishwasherManager & DishwasherMgr(void);
 
@@ -34,7 +40,7 @@ private:
     
     OperationalStateEnum mState;
     uint8_t mMode;
-
+    uint32_t mTimeRemaining;
     bool mIsPoweredOn = false;
 };
 

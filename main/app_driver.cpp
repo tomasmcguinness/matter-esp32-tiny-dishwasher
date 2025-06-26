@@ -323,10 +323,16 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
 }
 
-static void app_driver_button_long_press_start_cb(void *arg, void *data)
+static void app_driver_onoff_button_long_press_start_cb(void *arg, void *data)
 {
-    ESP_LOGI(TAG, "Long Press Started");
+    ESP_LOGI(TAG, "OnOff Long Press Started");
     DishwasherMgr().TogglePower();
+}
+
+static void app_driver_start_button_long_press_start_cb(void *arg, void *data)
+{
+    ESP_LOGI(TAG, "Start Long Press Started");
+    DishwasherMgr().ToggleProgram();
 }
 
 esp_err_t app_driver_init()
@@ -335,21 +341,29 @@ esp_err_t app_driver_init()
 
     // Create an OnOff Button.
     //
-    button_config_t config;
-    memset(&config, 0, sizeof(button_config_t));
+    button_config_t onoff_config;
+    memset(&onoff_config, 0, sizeof(button_config_t));
 
-    config.type = BUTTON_TYPE_GPIO;
-    config.gpio_button_config.gpio_num = GPIO_NUM_0;
-    config.gpio_button_config.active_level = 1;
+    onoff_config.type = BUTTON_TYPE_GPIO;
+    onoff_config.gpio_button_config.gpio_num = GPIO_NUM_0;
+    onoff_config.gpio_button_config.active_level = 1;
 
-    button_handle_t handle = iot_button_create(&config);
+    button_handle_t onoff_handle = iot_button_create(&onoff_config);
 
-    ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_LONG_PRESS_START, app_driver_button_long_press_start_cb, NULL));
-    //ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_LONG_PRESS_START, app_driver_button_long_press_start_cb, NULL));
-    //ESP_ERROR_CHECK(iot_button_register_cb(handle, BUTTON_LONG_PRESS_HOLD, app_driver_button_long_press_hold_cb, NULL));
+    //ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_START, app_driver_onoff_button_long_press_start_cb, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_SINGLE_CLICK, app_driver_onoff_button_long_press_start_cb, NULL));
 
-    // client::set_request_callback(app_driver_client_invoke_command_callback,
-    //                              app_driver_client_group_invoke_command_callback, NULL);
+    button_config_t start_config;
+    memset(&start_config, 0, sizeof(button_config_t));
+
+    start_config.type = BUTTON_TYPE_GPIO;
+    start_config.gpio_button_config.gpio_num = GPIO_NUM_1;
+    start_config.gpio_button_config.active_level = 1;
+
+    button_handle_t start_handle = iot_button_create(&start_config);
+
+    //ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_LONG_PRESS_START, app_driver_start_button_long_press_start_cb, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_SINGLE_CLICK, app_driver_start_button_long_press_start_cb, NULL));
 
     return err;
 }

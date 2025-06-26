@@ -19,7 +19,7 @@ public:
     void TurnOn();
     void TurnOff();
 
-    void UpdateDisplay(State state, const char* mode);
+    void UpdateDisplay(State state, const char* mode, uint32_t timeRemaining);
 
 private:
     friend StatusDisplay & StatusDisplayMgr(void);
@@ -28,6 +28,7 @@ private:
     esp_lcd_panel_handle_t mPanelHandle;
     lv_obj_t *mModeLabel;
     lv_obj_t *mStateLabel;
+    lv_obj_t *mTimeRemainingLabel;
 };
 
 inline StatusDisplay & StatusDisplayMgr(void)

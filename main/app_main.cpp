@@ -84,11 +84,10 @@ static esp_err_t app_identification_cb(identification::callback_type_t type, uin
 static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint_id, uint32_t cluster_id,
                                          uint32_t attribute_id, esp_matter_attr_val_t *val, void *priv_data)
 {
-     ESP_LOGI(TAG,"app_attribute_update_cb");
+    ESP_LOGI(TAG,"app_attribute_update_cb");
 
     if (type == POST_UPDATE)
     {
-        esp_err_t err = ESP_OK;
         if (endpoint_id == 0x01) {
             if (cluster_id == OnOff::Id) {
                 if (attribute_id == OnOff::Attributes::OnOff::Id) {

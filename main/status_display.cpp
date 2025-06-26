@@ -69,7 +69,7 @@ esp_err_t StatusDisplay::Init()
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
 
     ESP_LOGI(TAG, "Install SSD1306 panel driver");
-    //esp_lcd_panel_handle_t panel_handle = NULL;
+    // esp_lcd_panel_handle_t panel_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_RST,
         .bits_per_pixel = 1,
@@ -128,10 +128,13 @@ esp_err_t StatusDisplay::Init()
     lv_obj_set_style_bg_opa(mStateLabel, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_text_color(mStateLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
 
-    ESP_LOGI(TAG, "StatusDisplay::Init() finished");
+    mTimeRemainingLabel = lv_label_create(scr);
 
-    // static uint32_t user_data = 10;
-    // lv_timer_t * timer = lv_timer_create(my_timer, 500,  &user_data);
+    lv_label_set_text(mTimeRemainingLabel, "");
+    lv_obj_set_width(mTimeRemainingLabel, mDisp->driver->hor_res);
+    lv_obj_align(mTimeRemainingLabel, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+
+    ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
     return ESP_OK;
 }
@@ -139,16 +142,18 @@ esp_err_t StatusDisplay::Init()
 void StatusDisplay::TurnOn()
 {
     ESP_LOGI(TAG, "Turning display on");
-    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(mPanelHandle, true));
+    // ESP_ERROR_CHECK();
+    esp_lcd_panel_disp_on_off(mPanelHandle, true);
 }
 
 void StatusDisplay::TurnOff()
 {
     ESP_LOGI(TAG, "Turning display off");
-    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(mPanelHandle, false));
+    // ESP_ERROR_CHECK();
+    esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
-void StatusDisplay::UpdateDisplay(State state, const char *mode_text)
+void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t timeRemaining)
 {
     ESP_LOGI(TAG, "Setting status");
 
@@ -172,4 +177,20 @@ void StatusDisplay::UpdateDisplay(State state, const char *mode_text)
 
     lv_label_set_text(mStateLabel, state_text);
     lv_label_set_text(mModeLabel, mode_text);
+
+    ESP_LOGI(TAG, "Time Remaining: %lu", timeRemaining);
+
+    if (timeRemaining > 0)
+    {
+        char textToWrite[16];
+        sprintf(textToWrite, "%lus", timeRemaining);
+
+        ESP_LOGI(TAG, "Setting time to %s", textToWrite);
+
+        lv_label_set_text(mTimeRemainingLabel, textToWrite);
+    }
+    else
+    {
+        lv_label_set_text(mTimeRemainingLabel, "");
+    }
 }

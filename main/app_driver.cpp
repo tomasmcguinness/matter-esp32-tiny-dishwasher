@@ -24,7 +24,7 @@ static const char *TAG = "app_driver";
 
 DataModel::Nullable<uint32_t> OperationalStateDelegate::GetCountdownTime()
 {
-    return DataModel::MakeNullable((uint32_t)0);
+    return DataModel::MakeNullable(DishwasherMgr().GetTimeRemaining());
 }
 
 CHIP_ERROR OperationalStateDelegate::GetOperationalStateAtIndex(size_t index, GenericOperationalState &operationalState)

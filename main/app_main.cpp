@@ -130,6 +130,8 @@ extern "C" void app_main()
     //
     esp_matter::cluster_t *operational_state_cluster = esp_matter::cluster::get(endpoint, chip::app::Clusters::OperationalState::Id);
 
+    esp_matter::cluster::operational_state::attribute::create_countdown_time(operational_state_cluster, 0);
+
     esp_matter::cluster::operational_state::command::create_start(operational_state_cluster);
     esp_matter::cluster::operational_state::command::create_stop(operational_state_cluster);
     esp_matter::cluster::operational_state::command::create_pause(operational_state_cluster);

@@ -38,8 +38,14 @@ uint32_t DishwasherManager::GetTimeRemaining()
 
 void DishwasherManager::TogglePower()
 {
-    mIsPoweredOn = !mIsPoweredOn;
-    ESP_LOGI(TAG, "Power is %s", mIsPoweredOn ? "on" : "off");
+    if(mIsPoweredOn) 
+    {
+        TurnOffPower();
+    }
+    else
+    {
+        TurnOnPower();
+    }
 
     uint16_t endpoint_id = 0x01;
     uint32_t cluster_id = OnOff::Id;
@@ -51,19 +57,19 @@ void DishwasherManager::TogglePower()
     esp_matter::attribute::get_val(attribute, &val);
     val.val.b = mIsPoweredOn;
     esp_matter::attribute::update(endpoint_id, cluster_id, attribute_id, &val);
-
-    UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::TurnOnPower()
 {
     mIsPoweredOn = true;
+    StatusDisplayMgr().TurnOn();
     UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::TurnOffPower()
 {
     mIsPoweredOn = false;
+    StatusDisplayMgr().TurnOff();
     UpdateDishwasherDisplay();
 }
 
@@ -127,16 +133,16 @@ void DishwasherManager::UpdateDishwasherDisplay()
 {
     ESP_LOGI(TAG, "UpdateDishwasherDisplay called!");
 
-    ESP_LOGI(TAG, "Display: %s", mIsPoweredOn ? "on" : "off");
+    // ESP_LOGI(TAG, "Display: %s", mIsPoweredOn ? "on" : "off");
 
-    if (mIsPoweredOn)
-    {
-        StatusDisplayMgr().TurnOn();
-    }
-    else
-    {
-        StatusDisplayMgr().TurnOff();
-    }
+    // if (mIsPoweredOn)
+    // {
+    //     StatusDisplayMgr().TurnOn();
+    // }
+    // else
+    // {
+    //     StatusDisplayMgr().TurnOff();
+    // }
 
     char *mode = "Normal"; // Default value.
     char buffer[64];
@@ -183,6 +189,8 @@ void DishwasherManager::MoveProgramAlongOneTick()
     {
         EndProgram();
     }
+
+    UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::UpdateOperationState(OperationalStateEnum state)
@@ -201,6 +209,7 @@ static void WorkHandler(intptr_t context)
 {
     uint8_t mode = (uint8_t)context;
     DishwasherMode::GetInstance()->UpdateCurrentMode(mode);
+    DishwasherMgr().UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::SelectNextMode()
@@ -218,8 +227,6 @@ void DishwasherManager::SelectNextMode()
     ESP_LOGI(TAG, "Selected Mode: %d", mMode);
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(WorkHandler, mMode);
-
-    UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::SelectPreviousMode()
@@ -242,6 +249,4 @@ void DishwasherManager::SelectPreviousMode()
     ESP_LOGI(TAG, "Target Mode: %d", mMode);
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(WorkHandler, mMode);
-
-    UpdateDishwasherDisplay();
 }

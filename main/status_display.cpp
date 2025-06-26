@@ -69,7 +69,6 @@ esp_err_t StatusDisplay::Init()
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
 
     ESP_LOGI(TAG, "Install SSD1306 panel driver");
-    // esp_lcd_panel_handle_t panel_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_RST,
         .bits_per_pixel = 1,
@@ -157,6 +156,8 @@ void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t t
 {
     ESP_LOGI(TAG, "Setting status");
 
+    return;
+
     char *state_text;
 
     switch (state)
@@ -175,14 +176,11 @@ void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t t
         break;
     }
 
-    lv_label_set_text(mStateLabel, state_text);
-    lv_label_set_text(mModeLabel, mode_text);
-
     ESP_LOGI(TAG, "Time Remaining: %lu", timeRemaining);
 
     if (timeRemaining > 0)
     {
-        char textToWrite[16];
+        char textToWrite[32];
         sprintf(textToWrite, "%lus", timeRemaining);
 
         ESP_LOGI(TAG, "Setting time to %s", textToWrite);
@@ -191,6 +189,9 @@ void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t t
     }
     else
     {
-        lv_label_set_text(mTimeRemainingLabel, "");
+        //lv_label_set_text(mTimeRemainingLabel, "");
     }
+
+    lv_label_set_text(mStateLabel, state_text);
+    lv_label_set_text(mModeLabel, mode_text);
 }

@@ -125,7 +125,6 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
     char *state_text = "";
     char *mode_text = "";
-    char *time_remaining_text = "";
 
     switch (mState)
     {
@@ -148,7 +147,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
     ESP_LOGI(TAG, "Time Remaining: %lu", mTimeRemaining);
 
-    char time_buffer[30];
+    char time_buffer[30] = "";
 
     if (mTimeRemaining > 0)
     {
@@ -209,7 +208,7 @@ void DishwasherManager::SelectNextMode()
 {
     ESP_LOGI(TAG, "SelectNextMode called!");
 
-    if(mState != OperationStateEnum::kStopped) {
+    if(mState != OperationalStateEnum::kStopped) {
         ESP_LOGI(TAG, "Mode can only be changed when dishwasher is stopped!");
         return;
     }

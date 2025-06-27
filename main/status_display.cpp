@@ -145,6 +145,10 @@ void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text,
 {
     ESP_LOGI(TAG, "Updating the display");
 
+    ESP_LOGI(TAG, "state_text: [%s]", state_text);
+    ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
+    ESP_LOGI(TAG, "time_remaining_text: [%s]", time_remaining_text);
+
     lv_label_set_text(mStateLabel, state_text);
     lv_label_set_text(mModeLabel, mode_text);
     lv_label_set_text(mTimeRemainingLabel, time_remaining_text);

@@ -1,8 +1,8 @@
 # ACME Dishwasher
 
-This code creates a "working" dishwasher that can be connected to and controlled via the Matter Protocol. 
+This code creates a "working" dishwasher that can be connected to and controlled via the Matter Protocol. Powered by the ESP32, it supports most of the Matter Dishwasher devicetype with the mandatory OperationalState cluster as well as the optional OnOff and DishwasherMode clusters.
 
-It supports most of the DishWasher devicetype with the mandatory OperationalState cluster as well as the optional OnOff and DishwasherMode clusters.
+This is a work in progress and far from complete. 
 
 ## Wiring
 

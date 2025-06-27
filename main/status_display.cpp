@@ -3,11 +3,16 @@
 #include "esp_log.h"
 #include "status_display.h"
 
+#include "driver/i2c_master.h"
+
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lvgl_port.h"
-#include "driver/i2c_master.h"
+
+#include "lvgl.h"
+
+#include "dishwasher_manager.h"
 
 static const char *TAG = "status_display";
 
@@ -29,15 +34,32 @@ static const char *TAG = "status_display";
 
 StatusDisplay StatusDisplay::sStatusDisplay;
 
-// void my_timer(lv_timer_t * timer)
-// {
-//     ESP_LOGI(TAG, "lv_timer tick");
+void update_display_timer(lv_timer_t *timer)
+{
+    ESP_LOGI(TAG, "update_display_timer tick");
 
-//     uint32_t *user_data = lv_timer_get_user_data(timer);
+    // uint32_t *user_data = 44;// lv_timer_get_user_data(timer);
 
-//     lv_label_set_text(mStateLabel, "STATUS");
-//     lv_label_set_text(mModeLabel, "MODE");
-// }
+    // char buffer[30];
+    // sprintf(buffer, "%lus", *user_data);
+
+    // lv_label_set_text(StatusDisplay::mTimeRemainingLabel, "buffer");
+    // lv_label_set_text(StatusDisplayMgr().mStateLabel, "STATUS");
+    // lv_label_set_text(StatusDisplayMgr().mModeLabel, "MODE");
+
+    // uint32_t time_remaining = DishwasherMgr().GetTimeRemaining();
+    // char buffer[30];
+    // sprintf(buffer, "%lus", time_remaining);
+
+    // lv_obj_t *label = lv_obj_get_child(lv_scr_act(), 0);
+    // lv_label_set_text(label, buffer);
+
+    // label = lv_obj_get_child(lv_scr_act(), 1);
+    // lv_label_set_text(label, "Index 1");
+
+    // label = lv_obj_get_child(lv_scr_act(), 2);
+    // lv_label_set_text(label, "Index 2");
+}
 
 esp_err_t StatusDisplay::Init()
 {
@@ -82,10 +104,13 @@ esp_err_t StatusDisplay::Init()
 
     ESP_ERROR_CHECK(esp_lcd_panel_reset(mPanelHandle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(mPanelHandle));
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(mPanelHandle, true));
 
     ESP_LOGI(TAG, "Initialize LVGL");
     const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
     lvgl_port_init(&lvgl_cfg);
+
+    ESP_LOGI(TAG, "LVGL1");
 
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
@@ -101,27 +126,28 @@ esp_err_t StatusDisplay::Init()
             .mirror_y = false,
         }};
 
-    mDisp = lvgl_port_add_disp(&disp_cfg);
+    mDisplayHandle = lvgl_port_add_disp(&disp_cfg);
+
+    ESP_LOGI(TAG, "LVGL2");
 
     /* Rotation of the screen */
-    lv_disp_set_rotation(mDisp, LV_DISP_ROT_NONE);
+    // lv_disp_set_rotation(mDisplayHandle,  LV_DISP_ROT_NONE);
 
-    lv_obj_t *scr = lv_disp_get_scr_act(mDisp);
+    lv_obj_t *scr = lv_scr_act();
     lv_obj_t *label = lv_label_create(scr);
     lv_label_set_text(label, "DISHWASHER");
-    lv_obj_set_width(label, mDisp->driver->hor_res);
+    lv_obj_set_width(label, mDisplayHandle->driver->hor_res);
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
     mModeLabel = lv_label_create(scr);
-
     lv_label_set_text(mModeLabel, "");
-    lv_obj_set_width(mModeLabel, mDisp->driver->hor_res);
+    lv_obj_set_width(mModeLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mModeLabel, LV_ALIGN_LEFT_MID, 0, 0);
 
     mStateLabel = lv_label_create(scr);
 
     lv_label_set_text(mStateLabel, "");
-    lv_obj_set_width(mStateLabel, mDisp->driver->hor_res);
+    lv_obj_set_width(mStateLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mStateLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
     lv_obj_set_style_bg_color(mStateLabel, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(mStateLabel, LV_OPA_COVER, LV_PART_MAIN);
@@ -130,10 +156,13 @@ esp_err_t StatusDisplay::Init()
     mTimeRemainingLabel = lv_label_create(scr);
 
     lv_label_set_text(mTimeRemainingLabel, "");
-    lv_obj_set_width(mTimeRemainingLabel, mDisp->driver->hor_res);
+    lv_obj_set_width(mTimeRemainingLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mTimeRemainingLabel, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
+
+    // static uint32_t user_data = 10;
+    // lv_timer_t * timer = lv_timer_create(update_display_timer, 500,  &user_data);
 
     return ESP_OK;
 }
@@ -150,44 +179,11 @@ void StatusDisplay::TurnOff()
     esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
-void StatusDisplay::UpdateDisplay(State state, const char *mode_text, uint32_t timeRemaining)
+void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text, const char *time_remaining_text)
 {
-    ESP_LOGI(TAG, "Setting status");
+    ESP_LOGI(TAG, "Updating the display");
 
-    char *state_text;
-
-    switch (state)
-    {
-    case RUNNING:
-        state_text = "RUNNING";
-        break;
-    case STOPPED:
-        state_text = "STOPPED";
-        break;
-    case PAUSED:
-        state_text = "PAUSED";
-        break;
-    default:
-        state_text = "ERROR";
-        break;
-    }
-
-    ESP_LOGI(TAG, "Time Remaining: %lu", timeRemaining);
-
-    if (timeRemaining > 0)
-    {
-        char textToWrite[32];
-        sprintf(textToWrite, "%lus", timeRemaining);
-
-        ESP_LOGI(TAG, "Setting time to %s", textToWrite);
-
-        lv_label_set_text(mTimeRemainingLabel, textToWrite);
-    }
-    else
-    {
-        lv_label_set_text(mTimeRemainingLabel, "");
-    }
-
+    lv_label_set_text(mTimeRemainingLabel, time_remaining_text);
     lv_label_set_text(mStateLabel, state_text);
     lv_label_set_text(mModeLabel, mode_text);
 }

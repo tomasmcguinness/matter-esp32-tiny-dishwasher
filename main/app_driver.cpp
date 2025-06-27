@@ -13,7 +13,7 @@
 #include <protocols/interaction_model/StatusCode.h>
 #include "dishwasher_manager.h"
 #include <esp_debug_helpers.h>
-#include <iot_button.h>
+#include "iot_button.h"
 
 using namespace chip;
 using namespace chip::app;
@@ -183,11 +183,11 @@ void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
 
 using chip::Protocols::InteractionModel::Status;
 template <typename T>
-using List              = chip::app::DataModel::List<T>;
+using List = chip::app::DataModel::List<T>;
 using ModeTagStructType = chip::app::Clusters::detail::Structs::ModeTagStruct::Type;
 
-static DishwasherModeDelegate * gDishwasherModeDelegate = nullptr;
-static ModeBase::Instance * gDishwasherModeInstance     = nullptr;
+static DishwasherModeDelegate *gDishwasherModeDelegate = nullptr;
+static ModeBase::Instance *gDishwasherModeInstance = nullptr;
 
 CHIP_ERROR DishwasherModeDelegate::Init()
 {
@@ -199,14 +199,14 @@ CHIP_ERROR DishwasherModeDelegate::Init()
 }
 
 // todo refactor code by making a parent class for all ModeInstance classes to reduce flash usage.
-void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type & response)
+void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type &response)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::HandleChangeToMode()");
     DishwasherMgr().UpdateMode(NewMode);
     response.status = to_underlying(ModeBase::StatusCode::kSuccess);
 }
 
-CHIP_ERROR DishwasherModeDelegate::GetModeLabelByIndex(uint8_t modeIndex, chip::MutableCharSpan & label)
+CHIP_ERROR DishwasherModeDelegate::GetModeLabelByIndex(uint8_t modeIndex, chip::MutableCharSpan &label)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeLabelByIndex()");
     if (modeIndex >= MATTER_ARRAY_SIZE(kModeOptions))
@@ -217,7 +217,7 @@ CHIP_ERROR DishwasherModeDelegate::GetModeLabelByIndex(uint8_t modeIndex, chip::
     return chip::CopyCharSpanToMutableCharSpan(kModeOptions[modeIndex].label, label);
 }
 
-CHIP_ERROR DishwasherModeDelegate::GetModeValueByIndex(uint8_t modeIndex, uint8_t & value)
+CHIP_ERROR DishwasherModeDelegate::GetModeValueByIndex(uint8_t modeIndex, uint8_t &value)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeValueByIndex(%d)", modeIndex);
 
@@ -233,7 +233,7 @@ CHIP_ERROR DishwasherModeDelegate::GetModeValueByIndex(uint8_t modeIndex, uint8_
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR DishwasherModeDelegate::GetModeTagsByIndex(uint8_t modeIndex, List<ModeTagStructType> & tags)
+CHIP_ERROR DishwasherModeDelegate::GetModeTagsByIndex(uint8_t modeIndex, List<ModeTagStructType> &tags)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::GetModeTagsByIndex()");
     if (modeIndex >= MATTER_ARRAY_SIZE(kModeOptions))
@@ -282,12 +282,12 @@ void DishwasherModeDelegate::PostAttributeChangeCallback(AttributeId attributeId
     ESP_LOGI(TAG, "DishwasherModeDelegate::PostAttributeChangeCallback");
 }
 
-ModeBase::Instance * DishwasherMode::GetInstance()
+ModeBase::Instance *DishwasherMode::GetInstance()
 {
     return gDishwasherModeInstance;
 }
 
-ModeBase::Delegate * DishwasherMode::GetDelegate()
+ModeBase::Delegate *DishwasherMode::GetDelegate()
 {
     return gDishwasherModeDelegate;
 }
@@ -314,7 +314,7 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     VerifyOrDie(gDishwasherModeDelegate == nullptr && gDishwasherModeInstance == nullptr);
     gDishwasherModeDelegate = new DishwasherMode::DishwasherModeDelegate;
     // TODO Restore the deadfront support by setting the OnOff feature.
-    //gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
+    // gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
     gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, 0);
     gDishwasherModeInstance->Init();
 
@@ -323,13 +323,13 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
 }
 
-static void app_driver_onoff_button_long_press_start_cb(void *arg, void *data)
+static void app_driver_onoff_button_long_press_start_cb(void *args, void *user_data)
 {
     ESP_LOGI(TAG, "OnOff Long Press Started");
     DishwasherMgr().TogglePower();
 }
 
-static void app_driver_start_button_long_press_start_cb(void *arg, void *data)
+static void app_driver_start_button_long_press_start_cb(void *args, void *user_data)
 {
     ESP_LOGI(TAG, "Start Long Press Started");
     DishwasherMgr().ToggleProgram();
@@ -339,8 +339,6 @@ esp_err_t app_driver_init()
 {
     esp_err_t err = ESP_OK;
 
-    // Create an OnOff Button.
-    //
     button_config_t onoff_config;
     memset(&onoff_config, 0, sizeof(button_config_t));
 

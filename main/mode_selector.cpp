@@ -70,6 +70,7 @@ esp_err_t ModeSelector::Init()
     pcnt_unit_config_t unit_config = {
         .low_limit = EXAMPLE_PCNT_LOW_LIMIT,
         .high_limit = EXAMPLE_PCNT_HIGH_LIMIT,
+        .intr_priority = 1
     };
 
     ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
@@ -107,7 +108,7 @@ esp_err_t ModeSelector::Init()
         ESP_ERROR_CHECK(pcnt_unit_add_watch_point(pcnt_unit, watch_points[i]));
     }
     pcnt_event_callbacks_t cbs = {
-        //.on_reach = example_pcnt_on_reach,
+        .on_reach = NULL,
     };
 
     gpio_pulse_evt_queue = xQueueCreate(10, sizeof(int));

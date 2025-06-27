@@ -31,7 +31,7 @@ public:
 
     void ToggleProgram();
     void EndProgram();
-    void MoveProgramAlongOneTick();
+    void ProgressProgram();
 
 private:
     friend DishwasherManager & DishwasherMgr(void);

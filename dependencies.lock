@@ -85,7 +85,7 @@ dependencies:
       type: service
     version: 2.3.0
   espressif/esp_insights:
-    component_hash: 056d4769f0ea308bfc5c8c158eb8cbb582c05671da645cd25856063b50987101
+    component_hash: b9e0863e821a4a18d5805a969a0240e1c82c59aff13b9350568fe7892cef84b3
     dependencies:
     - name: espressif/cbor
       registry_url: https://components.espressif.com
@@ -111,7 +111,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 1.2.6
+    version: 1.2.7
   espressif/esp_lvgl_port:
     component_hash: b43dc04720d126cbfe14d53a84787e4c24b7bd7f15468e224c930ad3ffb32258
     dependencies:
@@ -191,12 +191,12 @@ dependencies:
       type: service
     version: 1.8.2
   espressif/rmaker_common:
-    component_hash: 58b81e26b94772d680b4f292e426bf975b01e71a52fbc5c5c143423fc0e5f633
+    component_hash: f1208cd1951f9308fd838d7af12de3522206cc77079f268629cd74bf9c6daea7
     dependencies: []
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.4.10
+    version: 1.4.11
   idf:
     source:
       type: idf
@@ -220,6 +220,6 @@ direct_dependencies:
 - espressif/json_parser
 - espressif/mdns
 - lvgl/lvgl
-manifest_hash: be4a23fac4623029a2ba3a62f09943b62678f6ebfcd3ffedbc7048adf12d2f7a
+manifest_hash: 6afd342071589eeff927a4c98def09424463d1bace9188691d7c06ed32391537
 target: esp32c6
 version: 2.0.0

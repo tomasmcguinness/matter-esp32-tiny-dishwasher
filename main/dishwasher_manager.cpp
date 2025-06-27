@@ -24,7 +24,7 @@ static void ProgramTick(void *arg)
 {
     while(1)
     {
-        ESP_LOGI(TAG, "RunProgramTick");
+        //ESP_LOGI(TAG, "RunProgramTick");
         DishwasherMgr().ProgressProgram();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
@@ -73,6 +73,7 @@ void DishwasherManager::TurnOnPower()
 {
     mIsPoweredOn = true;
     StatusDisplayMgr().TurnOn();
+    UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::TurnOffPower()
@@ -207,6 +208,12 @@ static void WorkHandler(intptr_t context)
 void DishwasherManager::SelectNextMode()
 {
     ESP_LOGI(TAG, "SelectNextMode called!");
+
+    if(mState != OperationStateEnum::kStopped) {
+        ESP_LOGI(TAG, "Mode can only be changed when dishwasher is stopped!");
+        return;
+    }
+
     mMode++;
 
     // Roll over if we reach the end
@@ -238,7 +245,7 @@ void DishwasherManager::SelectPreviousMode()
         mMode--;
     }
 
-    ESP_LOGI(TAG, "Target Mode: %d", mMode);
+    ESP_LOGI(TAG, "Selected Mode: %d", mMode);
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(WorkHandler, mMode);
 }

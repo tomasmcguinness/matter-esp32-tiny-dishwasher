@@ -40,7 +40,7 @@ static void pulse_counter_monitor_task(void *arg)
         else
         {
             ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
-            ESP_LOGI(TAG, "Current pulse count: %d", pulse_count);
+            //ESP_LOGI(TAG, "Current pulse count: %d", pulse_count);
 
             if (pulse_count != current_pulse_count)
             {
@@ -48,7 +48,7 @@ static void pulse_counter_monitor_task(void *arg)
 
                 current_pulse_count = pulse_count;
 
-                ESP_LOGI(TAG, "Pulse Difference: %d", pulse_difference);
+                //ESP_LOGI(TAG, "Pulse Difference: %d", pulse_difference);
 
                 if(pulse_difference < 0)
                 {

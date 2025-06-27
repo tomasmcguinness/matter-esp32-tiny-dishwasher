@@ -92,6 +92,14 @@ void DishwasherManager::ToggleProgram()
     {
         mTimeRemaining = 30; // TODO Make this depend on the selected mode.
         UpdateOperationState(OperationalStateEnum::kRunning);
+    } 
+    else if(mState == OperationalStateEnum::kRunning) 
+    {
+        UpdateOperationState(OperationalStateEnum::kPaused);
+    } 
+    else if(mState == OperationalStateEnum::kPaused)
+    {
+        UpdateOperationState(OperationalStateEnum::kRunning);
     }
 }
 

@@ -33,7 +33,7 @@ static void pulse_counter_monitor_task(void *arg)
 {
     while (1)
     {
-        if (xQueueReceive(gpio_pulse_evt_queue, &event_count, pdMS_TO_TICKS(1000)))
+        if (xQueueReceive(gpio_pulse_evt_queue, &event_count, pdMS_TO_TICKS(200)))
         {
             ESP_LOGI(TAG, "Watch point event, count: %d", event_count);
         }

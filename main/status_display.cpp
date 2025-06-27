@@ -34,33 +34,6 @@ static const char *TAG = "status_display";
 
 StatusDisplay StatusDisplay::sStatusDisplay;
 
-void update_display_timer(lv_timer_t *timer)
-{
-    ESP_LOGI(TAG, "update_display_timer tick");
-
-    // uint32_t *user_data = 44;// lv_timer_get_user_data(timer);
-
-    // char buffer[30];
-    // sprintf(buffer, "%lus", *user_data);
-
-    // lv_label_set_text(StatusDisplay::mTimeRemainingLabel, "buffer");
-    // lv_label_set_text(StatusDisplayMgr().mStateLabel, "STATUS");
-    // lv_label_set_text(StatusDisplayMgr().mModeLabel, "MODE");
-
-    // uint32_t time_remaining = DishwasherMgr().GetTimeRemaining();
-    // char buffer[30];
-    // sprintf(buffer, "%lus", time_remaining);
-
-    // lv_obj_t *label = lv_obj_get_child(lv_scr_act(), 0);
-    // lv_label_set_text(label, buffer);
-
-    // label = lv_obj_get_child(lv_scr_act(), 1);
-    // lv_label_set_text(label, "Index 1");
-
-    // label = lv_obj_get_child(lv_scr_act(), 2);
-    // lv_label_set_text(label, "Index 2");
-}
-
 esp_err_t StatusDisplay::Init()
 {
     ESP_LOGI(TAG, "StatusDisplay::Init()");
@@ -104,7 +77,6 @@ esp_err_t StatusDisplay::Init()
 
     ESP_ERROR_CHECK(esp_lcd_panel_reset(mPanelHandle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(mPanelHandle));
-    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(mPanelHandle, true));
 
     ESP_LOGI(TAG, "Initialize LVGL");
     const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
@@ -130,14 +102,7 @@ esp_err_t StatusDisplay::Init()
 
     ESP_LOGI(TAG, "LVGL2");
 
-    /* Rotation of the screen */
-    // lv_disp_set_rotation(mDisplayHandle,  LV_DISP_ROT_NONE);
-
     lv_obj_t *scr = lv_scr_act();
-    lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, "DISHWASHER");
-    lv_obj_set_width(label, mDisplayHandle->driver->hor_res);
-    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
 
     mModeLabel = lv_label_create(scr);
     lv_label_set_text(mModeLabel, "");
@@ -148,7 +113,7 @@ esp_err_t StatusDisplay::Init()
 
     lv_label_set_text(mStateLabel, "");
     lv_obj_set_width(mStateLabel, mDisplayHandle->driver->hor_res);
-    lv_obj_align(mStateLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_obj_align(mStateLabel, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_bg_color(mStateLabel, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(mStateLabel, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_text_color(mStateLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
@@ -157,12 +122,9 @@ esp_err_t StatusDisplay::Init()
 
     lv_label_set_text(mTimeRemainingLabel, "");
     lv_obj_set_width(mTimeRemainingLabel, mDisplayHandle->driver->hor_res);
-    lv_obj_align(mTimeRemainingLabel, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    lv_obj_align(mTimeRemainingLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
-
-    // static uint32_t user_data = 10;
-    // lv_timer_t * timer = lv_timer_create(update_display_timer, 500,  &user_data);
 
     return ESP_OK;
 }
@@ -183,7 +145,7 @@ void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text,
 {
     ESP_LOGI(TAG, "Updating the display");
 
-    lv_label_set_text(mTimeRemainingLabel, time_remaining_text);
     lv_label_set_text(mStateLabel, state_text);
     lv_label_set_text(mModeLabel, mode_text);
+    lv_label_set_text(mTimeRemainingLabel, time_remaining_text);
 }

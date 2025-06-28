@@ -44,16 +44,14 @@ CHIP_ERROR OperationalStateDelegate::GetOperationalStateAtIndex(size_t index, Ge
 CHIP_ERROR OperationalStateDelegate::GetOperationalPhaseAtIndex(size_t index, MutableCharSpan &operationalPhase)
 {
     ESP_LOGI(TAG, "GetOperationalPhaseAtIndex");
+    const CharSpan opPhaseList[4] = { "pre-wash"_span, "main-wash"_span, "rinse"_span, "drying"_span };
+    mOperationalPhaseList = Span<const CharSpan>(opPhaseList);
 
-    if (index == 0)
-    {
-        chip::CopyCharSpanToMutableCharSpan(CharSpan::fromCharString("Warming Water"), operationalPhase);
-        return CHIP_NO_ERROR;
-    }
-    else
+    if (index >= mOperationalPhaseList.size())
     {
         return CHIP_ERROR_NOT_FOUND;
     }
+    return CopyCharSpanToMutableCharSpan(mOperationalPhaseList[index], operationalPhase);
 }
 
 void OperationalStateDelegate::HandlePauseStateCallback(GenericOperationalError &err)

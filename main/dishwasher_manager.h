@@ -14,6 +14,11 @@ public:
 
     void UpdateOperationState(OperationalStateEnum state);
 
+    void StartProgram();
+    void StopProgram();
+    void PauseProgram();
+    void ResumeProgram();
+
     OperationalStateEnum GetOperationalState();
 
     uint32_t GetTimeRemaining();

@@ -91,22 +91,52 @@ void DishwasherManager::ToggleProgram()
 {
     if (mState == OperationalStateEnum::kStopped)
     {
-        mTimeRemaining = 30; // TODO Make this depend on the selected mode.
-        UpdateOperationState(OperationalStateEnum::kRunning);
+        //mTimeRemaining = 30; // TODO Make this depend on the selected mode.
+        //UpdateOperationState(OperationalStateEnum::kRunning);
+        StartProgram();
     } 
     else if(mState == OperationalStateEnum::kRunning) 
     {
-        UpdateOperationState(OperationalStateEnum::kPaused);
+        //UpdateOperationState(OperationalStateEnum::kPaused);
+        PauseProgram();
     } 
     else if(mState == OperationalStateEnum::kPaused)
     {
-        UpdateOperationState(OperationalStateEnum::kRunning);
+        //UpdateOperationState(OperationalStateEnum::kRunning);
+        ResumeProgram();
     }
+}
+
+void DishwasherManager::StartProgram()
+{
+    mTimeRemaining = 30; // TODO Make this depend on the selected mode.
+    UpdateOperationState(OperationalStateEnum::kRunning);
+    UpdateDishwasherDisplay();
+}
+
+void DishwasherManager::PauseProgram()
+{
+    UpdateOperationState(OperationalStateEnum::kPaused);
+    UpdateDishwasherDisplay();
+}
+
+void DishwasherManager::ResumeProgram()
+{
+    UpdateOperationState(OperationalStateEnum::kRunning);
+    UpdateDishwasherDisplay();
+}
+
+void DishwasherManager::StopProgram()
+{
+    mTimeRemaining = 0;
+    UpdateOperationState(OperationalStateEnum::kStopped);
+    UpdateDishwasherDisplay();
 }
 
 void DishwasherManager::EndProgram()
 {
-    UpdateOperationState(OperationalStateEnum::kStopped);
+    // TODO We might want to do other stuff here, like raise a Matter event that the program has ended.
+    StopProgram();
 }
 
 OperationalStateEnum DishwasherManager::GetOperationalState()

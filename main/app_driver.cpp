@@ -64,7 +64,7 @@ void OperationalStateDelegate::HandlePauseStateCallback(GenericOperationalError 
     if (error == CHIP_NO_ERROR)
     {
         GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kPaused);
+        DishwasherMgr().PauseProgram();
         err.Set(to_underlying(ErrorStateEnum::kNoError));
     }
     else
@@ -81,7 +81,7 @@ void OperationalStateDelegate::HandleResumeStateCallback(GenericOperationalError
     if (error == CHIP_NO_ERROR)
     {
         GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kRunning);
+        DishwasherMgr().ResumeProgram();
         err.Set(to_underlying(ErrorStateEnum::kNoError));
     }
     else
@@ -98,7 +98,9 @@ void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError 
     if (error == CHIP_NO_ERROR)
     {
         GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kRunning);
+
+        DishwasherMgr().StartProgram();
+
         err.Set(to_underlying(ErrorStateEnum::kNoError));
     }
     else
@@ -115,7 +117,7 @@ void OperationalStateDelegate::HandleStopStateCallback(GenericOperationalError &
     if (error == CHIP_NO_ERROR)
     {
         GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().UpdateOperationState(OperationalStateEnum::kStopped);
+        DishwasherMgr().StopProgram();
         err.Set(to_underlying(ErrorStateEnum::kNoError));
     }
     else

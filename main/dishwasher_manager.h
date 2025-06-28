@@ -43,7 +43,7 @@ private:
 
     static DishwasherManager sDishwasher;
     
-    OperationalStateEnum mState;
+    OperationalState::OperationalStateEnum mState;
     uint8_t mMode;
     uint32_t mTimeRemaining;
     bool mIsPoweredOn = false;

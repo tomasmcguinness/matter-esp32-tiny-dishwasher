@@ -215,10 +215,17 @@ void DishwasherManager::ProgressProgram()
     }
 }
 
+static void UpdateOperationalStateWorkHandler(intptr_t context)
+{
+    OperationalState::OperationalStateEnum state = (OperationalState::OperationalStateEnum)context;
+    OperationalState::GetInstance()->SetOperationalState(to_underlying(state));
+    DishwasherMgr().UpdateDishwasherDisplay();
+}
+
 void DishwasherManager::UpdateOperationState(OperationalStateEnum state)
 {
     mState = state;
-    UpdateDishwasherDisplay();
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateOperationalStateWorkHandler, (uint8_t)mState);
 }
 
 void DishwasherManager::UpdateMode(uint8_t mode)
@@ -227,7 +234,7 @@ void DishwasherManager::UpdateMode(uint8_t mode)
     UpdateDishwasherDisplay();
 }
 
-static void WorkHandler(intptr_t context)
+static void UpdateDishwasherCurrentModeWorkHandler(intptr_t context)
 {
     uint8_t mode = (uint8_t)context;
     DishwasherMode::GetInstance()->UpdateCurrentMode(mode);
@@ -254,7 +261,7 @@ void DishwasherManager::SelectNextMode()
 
     ESP_LOGI(TAG, "Selected Mode: %d", mMode);
 
-    chip::DeviceLayer::PlatformMgr().ScheduleWork(WorkHandler, mMode);
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateDishwasherCurrentModeWorkHandler, mMode);
 }
 
 void DishwasherManager::SelectPreviousMode()
@@ -276,5 +283,5 @@ void DishwasherManager::SelectPreviousMode()
 
     ESP_LOGI(TAG, "Selected Mode: %d", mMode);
 
-    chip::DeviceLayer::PlatformMgr().ScheduleWork(WorkHandler, mMode);
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateDishwasherCurrentModeWorkHandler, mMode);
 }

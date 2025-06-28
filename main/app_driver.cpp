@@ -154,6 +154,11 @@ void OperationalState::Shutdown()
     }
 }
 
+OperationalState::Instance *OperationalState::GetInstance()
+{
+    return gOperationalStateInstance;
+}
+
 OperationalState::OperationalStateDelegate *OperationalState::GetDelegate()
 {
     return gOperationalStateDelegate;

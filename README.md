@@ -10,7 +10,7 @@ I'm really interested in the energy management aspect of the Matter protocol. Th
 
 ## Wiring
 
-This code has been built for the XIAO ESP32-C6. Currently, the pinouts are hardcoded.
+This code has been built for the XIAO ESP32-C6. Currently, the pinouts are hardcoded, so if you want to use a different ESP Board, you'll need to change them in the code.
 
 | GPIO     | Usage   |
 | -------- | ------- |
@@ -24,7 +24,7 @@ This code has been built for the XIAO ESP32-C6. Currently, the pinouts are hardc
 
 ## Building
 
-To compile this application, you will need esp-idf v5.4.1 and esp-matter v1.4
+To compile this application, you will need esp-idf v5.4.1 and esp-matter v1.4. As I'm using a C6, I set the target accordingly. Once you have setup your esp-matter environment, you can compile it like this.
 
 ```
 idf.py set-target esp32-c6

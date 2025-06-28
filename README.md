@@ -4,6 +4,10 @@ This code creates a "working" dishwasher that can be connected to and controlled
 
 This is a work in progress and far from complete. 
 
+## Why?
+
+I'm really interested in the energy management aspect of the Matter protocol. There aren't any devices on the market to enable me to explore this protocol and besides, I'm not going to buy a new applicance for testing! Having this toy dishwasher will let me play around with how the energe management might work.
+
 ## Wiring
 
 This code has been built for the XIAO ESP32-C6. Currently, the pinouts are hardcoded.
@@ -31,13 +35,15 @@ idf.py build flash monitor
 
 To commission the device, follow the instuctions here https://docs.espressif.com/projects/esp-matter/en/latest/esp32/developing.html#commissioning-and-control
 
+## Using
+
 I use the `chip-tool` for most testing, since Dishwashers aren't supported in iOS or Android.
 
-Some example commands (based on a NodeId of 0x05)
+Some example commands (based on a NodeId of 0x05) for turning it on, selecting a program and starting it.
 
 ```
 chip-tool onoff on 0x05 0x01
-chip-tool operationalstate start 0x05 0x01
 chip-tool dishwashermode read supported-modes 0x05 0x01
 chip-tool dishwashermode change-to-mode 1 0x05 0x01
+chip-tool operationalstate start 0x05 0x01
 ```

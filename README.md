@@ -4,9 +4,9 @@ This code creates a "working" dishwasher that can be connected to and controlled
 
 It has two push buttons and one rotary encoder.
 
-The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.
-The second push button as a start/stop/pause/resume button.
-The rotary encoder allows the selection of DishwasherMode (aka program)
+* The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.
+* The second push button as a start/stop/pause/resume button.
+* The rotary encoder allows the selection of DishwasherMode (aka program)
 
 You can turn the device on, choose a program and press start. The device will start a 30 second countdown and work through five `Phases`. Once it's finished, it will stop. Whilst running, the program can be paused and resumed.
 

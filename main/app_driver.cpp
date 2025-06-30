@@ -26,12 +26,12 @@ DataModel::Nullable<uint32_t> OperationalStateDelegate::GetCountdownTime()
 {
     ESP_LOGI(TAG, "GetCountdownTime");
     uint32_t timeRemaining = DishwasherMgr().GetTimeRemaining();
-    
-    if(timeRemaining <=0) 
+
+    if (timeRemaining <= 0)
     {
         return DataModel::NullNullable; // Return null if the time remaining is zero or less);
-    } 
-    else 
+    }
+    else
     {
         return DataModel::MakeNullable(timeRemaining);
     }
@@ -55,7 +55,7 @@ CHIP_ERROR OperationalStateDelegate::GetOperationalPhaseAtIndex(size_t index, Mu
 {
     ESP_LOGI(TAG, "GetOperationalPhaseAtIndex");
 
-     if (index >= mOperationalPhaseList.size())
+    if (index >= mOperationalPhaseList.size())
     {
         return CHIP_ERROR_NOT_FOUND;
     }
@@ -65,82 +65,37 @@ CHIP_ERROR OperationalStateDelegate::GetOperationalPhaseAtIndex(size_t index, Mu
 void OperationalStateDelegate::HandlePauseStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandlePauseStateCallback");
-    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kPaused));
-
-    if (error == CHIP_NO_ERROR)
-    {
-        GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().PauseProgram();
-        err.Set(to_underlying(ErrorStateEnum::kNoError));
-    }
-    else
-    {
-        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
-    }
+    DishwasherMgr().PauseProgram();
+    err.Set(to_underlying(ErrorStateEnum::kNoError));
 }
 
 void OperationalStateDelegate::HandleResumeStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleResumeStateCallback");
-    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kRunning));
-
-    if (error == CHIP_NO_ERROR)
-    {
-        GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().ResumeProgram();
-        err.Set(to_underlying(ErrorStateEnum::kNoError));
-    }
-    else
-    {
-        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
-    }
+    DishwasherMgr().ResumeProgram();
+    err.Set(to_underlying(ErrorStateEnum::kNoError));
+    // err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
 }
 
 void OperationalStateDelegate::HandleStartStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleStartStateCallback");
-    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kRunning));
 
-    if (error == CHIP_NO_ERROR)
-    {
-        GetInstance()->UpdateCountdownTimeFromDelegate();
-
-        DishwasherMgr().StartProgram();
-
-        err.Set(to_underlying(ErrorStateEnum::kNoError));
-    }
-    else
-    {
-        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
-    }
+    DishwasherMgr().StartProgram();
+    err.Set(to_underlying(ErrorStateEnum::kNoError));
 }
 
 void OperationalStateDelegate::HandleStopStateCallback(GenericOperationalError &err)
 {
     ESP_LOGI(TAG, "HandleStopStateCallback");
-    auto error = GetInstance()->SetOperationalState(to_underlying(OperationalStateEnum::kStopped));
 
-    if (error == CHIP_NO_ERROR)
-    {
-        GetInstance()->UpdateCountdownTimeFromDelegate();
-        DishwasherMgr().StopProgram();
-        err.Set(to_underlying(ErrorStateEnum::kNoError));
-    }
-    else
-    {
-        err.Set(to_underlying(ErrorStateEnum::kUnableToCompleteOperation));
-    }
+    DishwasherMgr().StopProgram();
+    err.Set(to_underlying(ErrorStateEnum::kNoError));
 }
 
 void OperationalStateDelegate::PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t *value)
 {
     ESP_LOGI(TAG, "OperationalStateDelegate::PostAttributeChangeCallback");
-
-    // chip::app::ConcreteAttributePath info;
-    // info.mClusterId = Clusters::OperationalState::Id;
-    // info.mAttributeId = attributeId;
-    // info.mEndpointId = this->mEndpointId;
-    // MatterPostAttributeChangeCallback(info,type, size, value);
 }
 
 static OperationalState::Instance *gOperationalStateInstance = nullptr;
@@ -182,12 +137,15 @@ void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
     gOperationalStateInstance = new OperationalState::Instance(gOperationalStateDelegate, operationalStateEndpoint);
 
     gOperationalStateInstance->SetOperationalState(to_underlying(OperationalState::OperationalStateEnum::kStopped));
+    gOperationalStateInstance->SetCurrentPhase(0);
 
     gOperationalStateInstance->Init();
 
     gOperationalStateDelegate->mEndpointId = endpointId;
+
     uint8_t value = to_underlying(OperationalStateEnum::kStopped);
     gOperationalStateDelegate->PostAttributeChangeCallback(chip::app::Clusters::OperationalState::Attributes::OperationalState::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
+    gOperationalStateDelegate->PostAttributeChangeCallback(chip::app::Clusters::OperationalState::Attributes::CurrentPhase::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), 0);
 }
 
 //****************************
@@ -361,7 +319,7 @@ esp_err_t app_driver_init()
 
     button_handle_t onoff_handle = iot_button_create(&onoff_config);
 
-    //ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_START, app_driver_onoff_button_long_press_start_cb, NULL));
+    // ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_START, app_driver_onoff_button_long_press_start_cb, NULL));
     ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_SINGLE_CLICK, app_driver_onoff_button_long_press_start_cb, NULL));
 
     button_config_t start_config;
@@ -373,7 +331,7 @@ esp_err_t app_driver_init()
 
     button_handle_t start_handle = iot_button_create(&start_config);
 
-    //ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_LONG_PRESS_START, app_driver_start_button_long_press_start_cb, NULL));
+    // ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_LONG_PRESS_START, app_driver_start_button_long_press_start_cb, NULL));
     ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_SINGLE_CLICK, app_driver_start_button_long_press_start_cb, NULL));
 
     return err;

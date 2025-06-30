@@ -102,10 +102,6 @@ void DishwasherManager::ToggleProgram()
     {
         ResumeProgram();
     }
-
-    // Make sure the client knows to update the countdown time.
-    //
-    //OperationalState::GetInstance()->UpdateCountdownTimeFromDelegate();
 }
 
 void DishwasherManager::StartProgram()
@@ -209,7 +205,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
         {
             MutableCharSpan label(status_buffer);
 
-            operational_state_delegate->GetOperationalPhaseAtIndex(mPhase.Value(), label);
+            operational_state_delegate->GetOperationalPhaseAtIndex(mPhase, label);
 
             int length = snprintf((char *)NULL, 0, "%s (%s)", time_buffer, status_buffer)  + 1; /* +1 for the null terminator */
             status_formatted_buffer = (char *)malloc(length);
@@ -233,7 +229,7 @@ void DishwasherManager::ProgressProgram()
     {
         mTimeRemaining--;
 
-        DataModel::Nullable<uint8_t> current_phase = 0;
+        uint8_t current_phase = 0;
 
         if (mTimeRemaining <= 0)
         {
@@ -269,19 +265,18 @@ static void UpdateOperationalStatePhaseWorkHandler(intptr_t context)
     DishwasherMgr().UpdateDishwasherDisplay();
 }
 
-void DishwasherManager::UpdateCurrentPhase(DataModel::Nullable<uint8_t> phase)
+void DishwasherManager::UpdateCurrentPhase(uint8_t phase)
 {
     mPhase = phase;
 
     //This is one way to perform safe changes to the Matter stack.
     //
-    //chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateOperationalStatePhaseWorkHandler, reinterpret_cast<intptr_t>(phase));
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateOperationalStatePhaseWorkHandler, mPhase);
 
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    OperationalState::GetInstance()->SetCurrentPhase(phase);
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    DishwasherMgr().UpdateDishwasherDisplay();
+    // This is another.
+    //
+    // chip::DeviceLayer::PlatformMgr().LockChipStack();
+    // chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }
 
 static void UpdateOperationalStateWorkHandler(intptr_t context)

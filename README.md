@@ -69,3 +69,5 @@ If you have any suggestions, I'd love to hear them!
 ## Little Enclosure
 
 To complete the effect, I've built a small enclosure in foam board.
+
+![IMG_8493](https://github.com/user-attachments/assets/be44feea-0bbc-4ee8-a25a-3436a507302f)

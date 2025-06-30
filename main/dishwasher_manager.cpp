@@ -151,7 +151,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
     char *state_text = "";
     char *mode_text = "";
-    char *phase_text = "";
+    char *status_text = "";
 
     switch (mState)
     {
@@ -211,11 +211,11 @@ void DishwasherManager::UpdateDishwasherDisplay()
             status_formatted_buffer = (char *)malloc(length);
             snprintf(status_formatted_buffer, length, "%s (%s)", time_buffer, status_buffer);
 
-            phase_text = status_formatted_buffer;
+            status_text = status_formatted_buffer;
         }
     }
 
-    StatusDisplayMgr().UpdateDisplay(state_text, mode_text, phase_text);
+    StatusDisplayMgr().UpdateDisplay(state_text, mode_text, status_text);
 
     if(status_formatted_buffer != NULL) 
     {

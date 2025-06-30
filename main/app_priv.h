@@ -89,7 +89,7 @@ namespace chip
                         GenericOperationalState(to_underlying(OperationalStateEnum::kPaused)),
                         GenericOperationalState(to_underlying(OperationalStateEnum::kError)),
                     };
-                    const CharSpan phaseList[5] = {"pre-soak"_span, "main-wash"_span, "rinse"_span, "final_rinse"_span, "drying"_span};
+                    const CharSpan phaseList[5] = {"pre-soak"_span, "main-wash"_span, "rinse"_span, "final-rinse"_span, "drying"_span};
 
                     app::DataModel::List<const GenericOperationalState> mOperationalStateList = Span<const GenericOperationalState>(opStateList);
                     Span<const CharSpan> mOperationalPhaseList = Span<const CharSpan>(phaseList);

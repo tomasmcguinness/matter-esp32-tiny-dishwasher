@@ -42,9 +42,12 @@ private:
     friend DishwasherManager & DishwasherMgr(void);
 
     static DishwasherManager sDishwasher;
-    
+
+    void UpdateCurrentPhase(DataModel::Nullable<uint8_t> phase);
+
     OperationalState::OperationalStateEnum mState;
     uint8_t mMode;
+    DataModel::Nullable<uint8_t> mPhase; 
     uint32_t mTimeRemaining;
     bool mIsPoweredOn = false;
 };

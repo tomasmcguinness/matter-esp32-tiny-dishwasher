@@ -118,11 +118,11 @@ esp_err_t StatusDisplay::Init()
     lv_obj_set_style_bg_opa(mStateLabel, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_text_color(mStateLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
 
-    mTimeRemainingLabel = lv_label_create(scr);
+    mStatusLabel = lv_label_create(scr);
 
-    lv_label_set_text(mTimeRemainingLabel, "");
-    lv_obj_set_width(mTimeRemainingLabel, mDisplayHandle->driver->hor_res);
-    lv_obj_align(mTimeRemainingLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_label_set_text(mStatusLabel, "");
+    lv_obj_set_width(mStatusLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_align(mStatusLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
@@ -141,15 +141,15 @@ void StatusDisplay::TurnOff()
     esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
-void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text, const char *time_remaining_text)
+void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text, const char *status_text)
 {
     ESP_LOGI(TAG, "Updating the display");
 
     ESP_LOGI(TAG, "state_text: [%s]", state_text);
     ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
-    ESP_LOGI(TAG, "time_remaining_text: [%s]", time_remaining_text);
+    ESP_LOGI(TAG, "status_text: [%s]", status_text);
 
     lv_label_set_text(mStateLabel, state_text);
     lv_label_set_text(mModeLabel, mode_text);
-    lv_label_set_text(mTimeRemainingLabel, time_remaining_text);
+    lv_label_set_text(mStatusLabel, status_text);
 }

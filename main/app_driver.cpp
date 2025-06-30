@@ -24,7 +24,17 @@ static const char *TAG = "app_driver";
 
 DataModel::Nullable<uint32_t> OperationalStateDelegate::GetCountdownTime()
 {
-    return DataModel::MakeNullable(DishwasherMgr().GetTimeRemaining());
+    ESP_LOGI(TAG, "GetCountdownTime");
+    uint32_t timeRemaining = DishwasherMgr().GetTimeRemaining();
+    
+    if(timeRemaining <=0) 
+    {
+        return DataModel::NullNullable; // Return null if the time remaining is zero or less);
+    } 
+    else 
+    {
+        return DataModel::MakeNullable(timeRemaining);
+    }
 }
 
 CHIP_ERROR OperationalStateDelegate::GetOperationalStateAtIndex(size_t index, GenericOperationalState &operationalState)
@@ -45,15 +55,11 @@ CHIP_ERROR OperationalStateDelegate::GetOperationalPhaseAtIndex(size_t index, Mu
 {
     ESP_LOGI(TAG, "GetOperationalPhaseAtIndex");
 
-    if (index == 0)
-    {
-        chip::CopyCharSpanToMutableCharSpan(CharSpan::fromCharString("Warming Water"), operationalPhase);
-        return CHIP_NO_ERROR;
-    }
-    else
+     if (index >= mOperationalPhaseList.size())
     {
         return CHIP_ERROR_NOT_FOUND;
     }
+    return CopyCharSpanToMutableCharSpan(mOperationalPhaseList[index], operationalPhase);
 }
 
 void OperationalStateDelegate::HandlePauseStateCallback(GenericOperationalError &err)

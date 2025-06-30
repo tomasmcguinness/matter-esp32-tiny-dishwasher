@@ -100,6 +100,8 @@ esp_err_t StatusDisplay::Init()
 
     mDisplayHandle = lvgl_port_add_disp(&disp_cfg);
 
+    lv_disp_set_rotation(mDisplayHandle, LV_DISP_ROT_180);
+
     ESP_LOGI(TAG, "LVGL2");
 
     lv_obj_t *scr = lv_scr_act();

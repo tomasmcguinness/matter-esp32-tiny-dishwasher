@@ -47,3 +47,12 @@ chip-tool dishwashermode read supported-modes 0x05 0x01
 chip-tool dishwashermode change-to-mode 1 0x05 0x01
 chip-tool operationalstate start 0x05 0x01
 ```
+
+## Things to do
+
+[ ] Display a QR code or setup code if device is uncommissioned.
+[ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
+
+## Feedback please!
+
+If you have any suggestions, I'd love to hear them!

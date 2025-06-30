@@ -242,15 +242,15 @@ void DishwasherManager::ProgressProgram()
         }
         else if (mTimeRemaining < 5)
         {
-            current_phase = 5;
+            current_phase = 4;
         }
         else if (mTimeRemaining < 10)
         {
-            current_phase = 4;
+            current_phase = 3;
         }
         else if (mTimeRemaining < 15)
         {
-            current_phase = 3;
+            current_phase = 2;
         }
         else if (mTimeRemaining < 20)
         {

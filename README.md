@@ -2,7 +2,15 @@
 
 This code creates a "working" dishwasher that can be connected to and controlled via the Matter Protocol. Powered by the ESP32, it supports most of the Matter Dishwasher devicetype with the mandatory OperationalState cluster as well as the optional OnOff and DishwasherMode clusters.
 
-This is a work in progress and far from complete. 
+It has two push buttons and one rotary encoder.
+
+The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.
+The second push button as a start/stop/pause/resume button.
+The rotary encoder allows the selection of DishwasherMode (aka program)
+
+You can turn the device on, choose a program and press start. The device will start a 30 second countdown and work through five `Phases`. Once it's finished, it will stop. Whilst running, the program can be paused and resumed.
+
+This is a work in progress, so the implementation isn't perfect and might not fully align to the Matter specification (Dead Front behaviour for example - I don't ignore commands when the device is off)
 
 ## Why?
 
@@ -51,8 +59,13 @@ chip-tool operationalstate start 0x05 0x01
 ## Things to do
 
 [ ] Display a QR code or setup code if device is uncommissioned.
+[ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
 [ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
 
 ## Feedback please!
 
 If you have any suggestions, I'd love to hear them!
+
+## Little Enclosure
+
+To complete the effect, I've built a small enclosure in foam board.

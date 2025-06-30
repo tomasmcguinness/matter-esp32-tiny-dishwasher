@@ -161,6 +161,7 @@ extern "C" void app_main()
     // Add the On/Off cluster to the dishwasher endpoint and mark it with the dead front behavior feature.
     //
     esp_matter::cluster::on_off::config_t on_off_config;
+    on_off_config.on_off = false; // Initial state of the On/Off cluster
     esp_matter::cluster_t *on_off_cluster = esp_matter::cluster::on_off::create(endpoint, &on_off_config, CLUSTER_FLAG_SERVER, esp_matter::cluster::on_off::feature::dead_front_behavior::get_id());
 
     dish_washer_endpoint_id = endpoint::get_id(endpoint);

@@ -197,7 +197,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
     char status_buffer[64];
     char *status_formatted_buffer = NULL;
 
-    if (mState == OperationalStateEnum::kRunning)
+    if (mState == OperationalStateEnum::kRunning || mState == OperationalStateEnum::kPaused)
     {
         OperationalStateDelegate *operational_state_delegate = (OperationalStateDelegate *)OperationalState::GetDelegate();
 

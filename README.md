@@ -2,6 +2,8 @@
 
 This code creates a "working" dishwasher that can be connected to and controlled via the Matter Protocol. Powered by the ESP32, it supports most of the Matter Dishwasher devicetype with the mandatory OperationalState cluster as well as the optional OnOff and DishwasherMode clusters.
 
+https://tomasmcguinness.com/2025/06/27/matter-building-a-tiny-dishwasher-with-an-esp32/
+
 It has two push buttons and one rotary encoder.
 
 The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.

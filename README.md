@@ -41,6 +41,8 @@ idf.py set-target esp32-c6
 idf.py build flash monitor
 ```
 
+If you are using a diffent ESP32, change the target accordingly.
+
 ## Commissioning
 
 To commission the device, follow the instuctions here https://docs.espressif.com/projects/esp-matter/en/latest/esp32/developing.html#commissioning-and-control

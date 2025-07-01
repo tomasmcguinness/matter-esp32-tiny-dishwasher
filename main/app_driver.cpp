@@ -294,16 +294,35 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
 }
 
-static void app_driver_onoff_button_long_press_start_cb(void *args, void *user_data)
+static void onoff_button_single_click_cb(void *args, void *user_data)
 {
-    ESP_LOGI(TAG, "OnOff Long Press Started");
+    ESP_LOGI(TAG, "OnOff Clicked");
     DishwasherMgr().TogglePower();
 }
 
-static void app_driver_start_button_long_press_start_cb(void *args, void *user_data)
+static void start_button_single_click_cb(void *args, void *user_data)
 {
-    ESP_LOGI(TAG, "Start Long Press Started");
+    ESP_LOGI(TAG, "Start Clicked");
     DishwasherMgr().ToggleProgram();
+}
+
+static bool perform_factory_reset = false;
+
+static void button_factory_reset_pressed_cb(void *arg, void *data)
+{
+    if (!perform_factory_reset) {
+        ESP_LOGI(TAG, "Factory reset triggered. Release the button to start factory reset.");
+        perform_factory_reset = true;
+    }
+}
+
+static void button_factory_reset_released_cb(void *arg, void *data)
+{
+    if (perform_factory_reset) {
+        ESP_LOGI(TAG, "Starting factory reset");
+        esp_matter::factory_reset();
+        perform_factory_reset = false;
+    }
 }
 
 esp_err_t app_driver_init()
@@ -319,8 +338,9 @@ esp_err_t app_driver_init()
 
     button_handle_t onoff_handle = iot_button_create(&onoff_config);
 
-    // ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_START, app_driver_onoff_button_long_press_start_cb, NULL));
-    ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_SINGLE_CLICK, app_driver_onoff_button_long_press_start_cb, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_HOLD, button_factory_reset_pressed_cb, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_PRESS_UP, button_factory_reset_released_cb, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_SINGLE_CLICK, onoff_button_single_click_cb, NULL));
 
     button_config_t start_config;
     memset(&start_config, 0, sizeof(button_config_t));
@@ -331,8 +351,7 @@ esp_err_t app_driver_init()
 
     button_handle_t start_handle = iot_button_create(&start_config);
 
-    // ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_LONG_PRESS_START, app_driver_start_button_long_press_start_cb, NULL));
-    ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_SINGLE_CLICK, app_driver_start_button_long_press_start_cb, NULL));
+    ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_SINGLE_CLICK, start_button_single_click_cb, NULL));
 
     return err;
 }

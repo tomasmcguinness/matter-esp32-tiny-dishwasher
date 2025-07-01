@@ -66,9 +66,9 @@ chip-tool operationalstate start 0x05 0x01
 
 ## Things to do
 
-[ ] Display a QR code or setup code if device is uncommissioned.
-[ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
-[ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
+- [ ] Display a QR code or setup code if device is uncommissioned.
+- [ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
+- [ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
 
 ## Feedback please!
 

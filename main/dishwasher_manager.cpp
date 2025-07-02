@@ -80,6 +80,7 @@ void DishwasherManager::TurnOnPower()
 void DishwasherManager::TurnOffPower()
 {
     mIsPoweredOn = false;
+    StopProgram();
     StatusDisplayMgr().TurnOff();
 }
 
@@ -125,6 +126,8 @@ void DishwasherManager::ResumeProgram()
 void DishwasherManager::StopProgram()
 {
     mTimeRemaining = 0;
+    UpdateCurrentPhase(0);
+    UpdateMode(0);
     UpdateOperationState(OperationalStateEnum::kStopped);
 }
 

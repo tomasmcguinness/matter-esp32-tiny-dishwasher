@@ -26,15 +26,7 @@ DataModel::Nullable<uint32_t> OperationalStateDelegate::GetCountdownTime()
 {
     ESP_LOGI(TAG, "GetCountdownTime");
     uint32_t timeRemaining = DishwasherMgr().GetTimeRemaining();
-
-    if (timeRemaining <= 0)
-    {
-        return DataModel::NullNullable; // Return null if the time remaining is zero or less);
-    }
-    else
-    {
-        return DataModel::MakeNullable(timeRemaining);
-    }
+    return DataModel::MakeNullable(timeRemaining);
 }
 
 CHIP_ERROR OperationalStateDelegate::GetOperationalStateAtIndex(size_t index, GenericOperationalState &operationalState)
@@ -310,7 +302,8 @@ static bool perform_factory_reset = false;
 
 static void button_factory_reset_pressed_cb(void *arg, void *data)
 {
-    if (!perform_factory_reset) {
+    if (!perform_factory_reset)
+    {
         ESP_LOGI(TAG, "Factory reset triggered. Release the button to start factory reset.");
         perform_factory_reset = true;
     }
@@ -318,7 +311,8 @@ static void button_factory_reset_pressed_cb(void *arg, void *data)
 
 static void button_factory_reset_released_cb(void *arg, void *data)
 {
-    if (perform_factory_reset) {
+    if (perform_factory_reset)
+    {
         ESP_LOGI(TAG, "Starting factory reset");
         esp_matter::factory_reset();
         perform_factory_reset = false;

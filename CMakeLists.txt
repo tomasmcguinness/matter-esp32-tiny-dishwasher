@@ -28,7 +28,7 @@ set(EXTRA_COMPONENT_DIRS
     "${ESP_MATTER_PATH}/components"
     ${extra_components_dirs_append})
 
-project(acme_dishwasher)
+project(tiny_dishwasher)
 if(CONFIG_IDF_TARGET_ESP32C2)
     include(relinker)
 endif()

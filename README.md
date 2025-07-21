@@ -10,9 +10,9 @@ https://tomasmcguinness.com/2025/06/27/matter-building-a-tiny-dishwasher-with-an
 
 It has two push buttons and one rotary encoder.
 
-The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.
-The second push button as a start/stop/pause/resume button.
-The rotary encoder allows the selection of DishwasherMode (aka program)
+* The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.
+* The second push button as a start/stop/pause/resume button.
+* The rotary encoder allows the selection of DishwasherMode (aka program)
 
 You can turn the device on, choose a program and press start. The device will start a 30 second countdown and work through five `Phases`. Once it's finished, it will stop. Whilst running, the program can be paused and resumed.
 
@@ -66,12 +66,12 @@ chip-tool operationalstate start 0x05 0x01
 
 ## Things to do
 
-[ ] Display a QR code or setup code if device is uncommissioned.
-[ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
-[ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
-[ ] Add energy management endpoint
-[ ] Add energy forecast
-[ ] Create a hex file for easier flashing (without needing the whole ESP-IDF setup!)
+- [ ] Display a QR code or setup code if device is uncommissioned.
+- [ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
+- [ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
+- [ ] Add energy management endpoint
+- [ ] Add energy forecast
+- [ ] Create a hex file for easier flashing (without needing the whole ESP-IDF setup!)
 
 ## Feedback please!
 

@@ -53,7 +53,7 @@ To commission the device, follow the instuctions here https://docs.espressif.com
 
 ## Using
 
-I use the `chip-tool` for most testing, since Dishwashers aren't supported in iOS or Android.
+I use the `chip-tool` for most testing, since Dishwashers aren't supported in iOS or Android. The Aqara M100 hub has rudimentary support for Matter appliances.
 
 Some example commands (based on a NodeId of 0x05) for turning it on, selecting a program and starting it.
 
@@ -69,6 +69,9 @@ chip-tool operationalstate start 0x05 0x01
 [ ] Display a QR code or setup code if device is uncommissioned.
 [ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
 [ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
+[ ] Add energy management endpoint
+[ ] Add energy forecast
+[ ] Create a hex file for easier flashing (without needing the whole ESP-IDF setup!)
 
 ## Feedback please!
 

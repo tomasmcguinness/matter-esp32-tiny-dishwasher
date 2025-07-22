@@ -163,7 +163,7 @@ extern "C" void app_main()
     //
     esp_matter::cluster::on_off::config_t on_off_config;
     on_off_config.on_off = false; // Initial state of the On/Off cluster
-    esp_matter::cluster_t *on_off_cluster = esp_matter::cluster::on_off::create(endpoint, &on_off_config, CLUSTER_FLAG_SERVER, esp_matter::cluster::on_off::feature::dead_front_behavior::get_id());
+    esp_matter::cluster::on_off::create(endpoint, &on_off_config, CLUSTER_FLAG_SERVER, esp_matter::cluster::on_off::feature::dead_front_behavior::get_id());
 
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);
@@ -173,12 +173,11 @@ extern "C" void app_main()
      */
     static DeviceEnergyManagementDelegate device_energy_management_delegate;
 
-    esp_matter::cluster::device_energy_management::config_t device_energy_management_config;
-    device_energy_management_config.delegate = &device_energy_management_delegate; // Set to nullptr if not using a delegate
+    esp_matter::endpoint::device_energy_management::config_t device_energy_management_config;
+    device_energy_management_config.device_energy_management.delegate = &device_energy_management_delegate;
 
-    endpoint_t *device_energy_management_endpoint = esp_matter::cluster::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, ENDPOINT_FLAG_NONE);
+    endpoint_t *device_energy_management_endpoint = esp_matter::endpoint::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, NULL);
     ABORT_APP_ON_FAILURE(device_energy_management_endpoint != nullptr, ESP_LOGE(TAG, "Failed to create device energy management endpoint"));
-
 
     err = DishwasherMgr().Init();
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "DishwasherMgr::Init() failed, err:%d", err));

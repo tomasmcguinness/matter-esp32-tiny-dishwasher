@@ -9,6 +9,7 @@
 #include <esp_log.h>
 #include <app_priv.h>
 #include <app-common/zap-generated/attribute-type.h>
+#include <app-common/zap-generated/cluster-enums.h>
 #include <app/util/generic-callbacks.h>
 #include <protocols/interaction_model/StatusCode.h>
 #include "dishwasher_manager.h"
@@ -19,6 +20,8 @@ using namespace chip;
 using namespace chip::app;
 using namespace chip::app::Clusters;
 using namespace chip::app::Clusters::OperationalState;
+using namespace chip::app::Clusters::DeviceEnergyManagement;
+using namespace chip::Protocols::InteractionModel;
 
 static const char *TAG = "app_driver";
 
@@ -161,7 +164,6 @@ CHIP_ERROR DishwasherModeDelegate::Init()
     return CHIP_NO_ERROR;
 }
 
-// todo refactor code by making a parent class for all ModeInstance classes to reduce flash usage.
 void DishwasherModeDelegate::HandleChangeToMode(uint8_t NewMode, ModeBase::Commands::ChangeToModeResponse::Type &response)
 {
     ESP_LOGI(TAG, "DishwasherModeDelegate::HandleChangeToMode()");
@@ -285,6 +287,104 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
 
     ESP_LOGI(TAG, "CurrentMode: %d", currentMode);
 }
+
+//*************************************
+//* DEVICE ENERGY MANAGEMENT DELEGATE *
+//*************************************
+
+// static DeviceEnergyManagementDelegate *gDeviceEnergyManagementDelegate = nullptr;
+// static ModeBase::Instance *gDishwasherModeInstance = nullptr;
+
+Status DeviceEnergyManagementDelegate::PowerAdjustRequest(const int64_t powerMw, const uint32_t durationS, AdjustmentCauseEnum cause)
+{
+    return Status::Failure;
+}
+
+Status DeviceEnergyManagementDelegate::CancelPowerAdjustRequest()
+{
+    return Status::Failure;
+}
+
+Status DeviceEnergyManagementDelegate::StartTimeAdjustRequest(const uint32_t requestedStartTime, AdjustmentCauseEnum cause)
+{
+    return Status::Failure;
+}
+
+Status DeviceEnergyManagementDelegate::PauseRequest(const uint32_t duration, AdjustmentCauseEnum cause)
+{
+    return Status::Failure;
+}
+
+Status DeviceEnergyManagementDelegate::ResumeRequest()
+{
+    return Status::Failure;
+}
+
+Status DeviceEnergyManagementDelegate::ModifyForecastRequest(const uint32_t forecastID, const DataModel::DecodableList<DeviceEnergyManagement::Structs::SlotAdjustmentStruct::Type> &slotAdjustments, AdjustmentCauseEnum cause)
+{
+    return Status::Failure;
+}
+
+Status DeviceEnergyManagementDelegate::RequestConstraintBasedForecast(const DataModel::DecodableList<DeviceEnergyManagement::Structs::ConstraintsStruct::Type> &constraints, AdjustmentCauseEnum cause)
+{
+    return Status::Failure;
+}
+Status DeviceEnergyManagementDelegate::CancelRequest()
+{
+    return Status::Failure;
+}
+
+ESATypeEnum DeviceEnergyManagementDelegate::GetESAType()
+{
+    return ESATypeEnum::kDishwasher;
+}
+
+bool DeviceEnergyManagementDelegate::GetESACanGenerate()
+{
+    return false;
+}
+
+ESAStateEnum DeviceEnergyManagementDelegate::GetESAState()
+{
+    return ESAStateEnum::kOnline;
+}
+
+int64_t DeviceEnergyManagementDelegate::GetAbsMinPower()
+{
+    return 0;
+}
+
+int64_t DeviceEnergyManagementDelegate::GetAbsMaxPower()
+{
+    return 1000;
+}
+
+OptOutStateEnum DeviceEnergyManagementDelegate::GetOptOutState()
+{
+    return OptOutStateEnum::kNoOptOut;
+}
+
+CHIP_ERROR DeviceEnergyManagementDelegate::SetESAState(ESAStateEnum newValue)
+{
+    return CHIP_NO_ERROR;
+}
+
+DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
+DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast;
+
+chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> & DeviceEnergyManagementDelegate::GetPowerAdjustmentCapability()
+{
+    return mPowerAdjustCapabilityStruct;
+}
+
+chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> & DeviceEnergyManagementDelegate::GetForecast()
+{
+    return mForecast;
+}
+
+//***********
+//* BUTTONS *
+//***********
 
 static void onoff_button_single_click_cb(void *args, void *user_data)
 {

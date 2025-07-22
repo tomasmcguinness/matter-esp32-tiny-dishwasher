@@ -12,9 +12,11 @@
 #include <esp_matter.h>
 #include <app-common/zap-generated/cluster-objects.h>
 #include <app-common/zap-generated/ids/Attributes.h>
+#include <app-common/zap-generated/cluster-enums.h>
 #include <app/clusters/mode-base-server/mode-base-server.h>
 #include <app/clusters/mode-base-server/mode-base-cluster-objects.h>
 #include <app/clusters/operational-state-server/operational-state-server.h>
+#include <app/clusters/device-energy-management-server/device-energy-management-server.h>
 #include <protocols/interaction_model/StatusCode.h>
 
 typedef void *app_driver_handle_t;
@@ -25,6 +27,8 @@ using namespace chip::app::Clusters;
 using namespace chip::app::Clusters::ModeBase;
 using namespace chip::app::Clusters::OperationalState;
 using namespace chip::app::Clusters::DishwasherMode;
+using namespace chip::app::Clusters::DeviceEnergyManagement;
+using namespace chip::Protocols::InteractionModel;
 
 esp_err_t app_driver_init();
 
@@ -55,13 +59,12 @@ namespace chip
         {
             namespace OperationalState
             {
-
                 class OperationalStateDelegate : public Delegate
                 {
                 public:
                     uint32_t mRunningTime = 0;
                     uint32_t mPausedTime = 0;
-                    
+
                     app::DataModel::Nullable<uint32_t> mCountDownTime;
 
                     chip::app::DataModel::Nullable<uint32_t> GetCountdownTime();
@@ -180,3 +183,46 @@ namespace chip
         } // namespace Clusters
     } // namespace app
 } // namespace chip
+
+namespace chip
+{
+    namespace app
+    {
+        namespace Clusters
+        {
+            namespace DeviceEnergyManagement
+            {
+                class DeviceEnergyManagementDelegate : public DeviceEnergyManagement::Delegate
+                {
+                public:
+                    Status PowerAdjustRequest(const int64_t powerMw, const uint32_t durationS, AdjustmentCauseEnum cause);
+                    Status CancelPowerAdjustRequest();
+                    Status StartTimeAdjustRequest(const uint32_t requestedStartTime, AdjustmentCauseEnum cause);
+                    Status PauseRequest(const uint32_t duration, AdjustmentCauseEnum cause);
+                    Status ResumeRequest();
+                    Status ModifyForecastRequest(const uint32_t forecastID, const DataModel::DecodableList<Structs::SlotAdjustmentStruct::Type> &slotAdjustments, AdjustmentCauseEnum cause);
+                    Status RequestConstraintBasedForecast(const DataModel::DecodableList<Structs::ConstraintsStruct::Type> &constraints, AdjustmentCauseEnum cause);
+                    Status CancelRequest();
+
+                    ESATypeEnum GetESAType();
+                    bool GetESACanGenerate();
+                    ESAStateEnum GetESAState();
+                    int64_t GetAbsMinPower();
+                    int64_t GetAbsMaxPower();
+                    OptOutStateEnum GetOptOutState();
+
+                    CHIP_ERROR SetESAState(ESAStateEnum newValue);
+
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> & GetPowerAdjustmentCapability() override;
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> & GetForecast() override;
+
+                    ~DeviceEnergyManagementDelegate() override = default;
+                    EndpointId mEndpointId;
+                };
+
+                DeviceEnergyManagement::Instance *GetInstance();
+                DeviceEnergyManagement::Delegate *GetDelegate();
+            }
+        }
+    }
+}

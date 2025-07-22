@@ -31,6 +31,7 @@ using namespace esp_matter;
 using namespace esp_matter::attribute;
 using namespace esp_matter::endpoint;
 using namespace esp_matter::cluster;
+using namespace chip::app::Clusters::DeviceEnergyManagement;
 
 static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 {
@@ -166,6 +167,18 @@ extern "C" void app_main()
 
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);
+
+    /*
+     * Add DeviceEnergyManagement
+     */
+    static DeviceEnergyManagementDelegate device_energy_management_delegate;
+
+    esp_matter::cluster::device_energy_management::config_t device_energy_management_config;
+    device_energy_management_config.delegate = &device_energy_management_delegate; // Set to nullptr if not using a delegate
+
+    endpoint_t *device_energy_management_endpoint = esp_matter::cluster::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, ENDPOINT_FLAG_NONE);
+    ABORT_APP_ON_FAILURE(device_energy_management_endpoint != nullptr, ESP_LOGE(TAG, "Failed to create device energy management endpoint"));
+
 
     err = DishwasherMgr().Init();
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "DishwasherMgr::Init() failed, err:%d", err));

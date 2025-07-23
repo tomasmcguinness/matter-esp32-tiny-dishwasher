@@ -20,7 +20,7 @@ This is a work in progress, so the implementation isn't perfect and might not fu
 
 ## Why?
 
-I'm really interested in the energy management aspect of the Matter protocol. There aren't any devices on the market to enable me to explore this protocol and besides, I'm not going to buy a new applicance for testing! Having this toy dishwasher will let me play around with how the energe management might work.
+I'm really interested in the energy management aspect of the Matter protocol. There aren't any devices on the market to enable me to explore this protocol and besides, I'm not going to buy a new applicance for testing! Having this toy dishwasher will let me play around with how the energy management might work.
 
 ## Wiring
 

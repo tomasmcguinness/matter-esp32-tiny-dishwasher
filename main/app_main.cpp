@@ -26,6 +26,7 @@
 
 static const char *TAG = "app_main";
 static uint16_t dish_washer_endpoint_id = 0;
+static uint16_t device_energy_manager_endpoint_id = 0;
 
 using namespace esp_matter;
 using namespace esp_matter::attribute;
@@ -72,8 +73,7 @@ static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 
 // This callback is invoked when clients interact with the Identify Cluster.
 // In the callback implementation, an endpoint can identify itself. (e.g., by flashing an LED or light).
-static esp_err_t app_identification_cb(identification::callback_type_t type, uint16_t endpoint_id, uint8_t effect_id,
-                                       uint8_t effect_variant, void *priv_data)
+static esp_err_t app_identification_cb(identification::callback_type_t type, uint16_t endpoint_id, uint8_t effect_id, uint8_t effect_variant, void *priv_data)
 {
     ESP_LOGI(TAG, "Identification callback: type: %u, effect: %u, variant: %u", type, effect_id, effect_variant);
     return ESP_OK;
@@ -82,20 +82,25 @@ static esp_err_t app_identification_cb(identification::callback_type_t type, uin
 // This callback is called for every attribute update. The callback implementation shall
 // handle the desired attributes and return an appropriate error code. If the attribute
 // is not of your interest, please do not return an error code and strictly return ESP_OK.
-static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint_id, uint32_t cluster_id,
-                                         uint32_t attribute_id, esp_matter_attr_val_t *val, void *priv_data)
+static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint_id, uint32_t cluster_id, uint32_t attribute_id, esp_matter_attr_val_t *val, void *priv_data)
 {
-    ESP_LOGI(TAG,"app_attribute_update_cb");
+    ESP_LOGI(TAG, "app_attribute_update_cb");
 
     if (type == POST_UPDATE)
     {
-        if (endpoint_id == 0x01) {
-            if (cluster_id == OnOff::Id) {
-                if (attribute_id == OnOff::Attributes::OnOff::Id) {
+        if (endpoint_id == 0x01)
+        {
+            if (cluster_id == OnOff::Id)
+            {
+                if (attribute_id == OnOff::Attributes::OnOff::Id)
+                {
                     ESP_LOGI(TAG, "OnOff attribute updated to: %s!", val->val.b ? "on" : "off");
-                    if(val->val.b) {
+                    if (val->val.b)
+                    {
                         DishwasherMgr().TurnOnPower();
-                    } else {
+                    }
+                    else
+                    {
                         DishwasherMgr().TurnOffPower();
                     }
                 }
@@ -127,7 +132,8 @@ extern "C" void app_main()
     ABORT_APP_ON_FAILURE(endpoint != nullptr, ESP_LOGE(TAG, "Failed to create dishwasher endpoint"));
 
     // OperationalState is a mandatory cluster for the dishwasher endpoint.
-    // Get it and then add the commands to it. These commands are optional, so we must add them.
+    // The countdown time attribute is optional, so we must be add it to the cluster.
+    // The commands e.g. start, stop etc. are optional, so we must add them to the cluster.
     //
     esp_matter::cluster_t *operational_state_cluster = esp_matter::cluster::get(endpoint, chip::app::Clusters::OperationalState::Id);
 
@@ -140,8 +146,6 @@ extern "C" void app_main()
 
     // Create the DishwasherMode cluster and add it to the dishwasher endpoint
     //
-    static DishwasherModeDelegate dish_washer_mode_delegate;
-
     esp_matter::cluster::dish_washer_mode::config_t dish_washer_mode_config;
 
     // TODO Setting the delegate here causes esp-matter to create it's own Instance of ModeBase
@@ -158,7 +162,7 @@ extern "C" void app_main()
     esp_matter::cluster::mode_base::attribute::create_supported_modes(dish_washer_mode_cluster, NULL, 0, 0);
 
     esp_matter::cluster::mode_base::command::create_change_to_mode(dish_washer_mode_cluster);
-    
+
     // Add the On/Off cluster to the dishwasher endpoint and mark it with the dead front behavior feature.
     //
     esp_matter::cluster::on_off::config_t on_off_config;
@@ -171,13 +175,15 @@ extern "C" void app_main()
     /*
      * Add DeviceEnergyManagement
      */
-    static DeviceEnergyManagementDelegate device_energy_management_delegate;
-
     esp_matter::endpoint::device_energy_management::config_t device_energy_management_config;
+    device_energy_management_config.device_energy_management.feature_flags = esp_matter::cluster::device_energy_management::feature::power_forecast_reporting::get_id() | esp_matter::cluster::device_energy_management::feature::start_time_adjustment::get_id() |  esp_matter::cluster::device_energy_management::feature::power_adjustment::get_id();
     device_energy_management_config.device_energy_management.delegate = &device_energy_management_delegate;
 
-    endpoint_t *device_energy_management_endpoint = esp_matter::endpoint::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, NULL);
+    endpoint_t *device_energy_management_endpoint = esp_matter::endpoint::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, ESP_MATTER_NONE_FEATURE_ID);
     ABORT_APP_ON_FAILURE(device_energy_management_endpoint != nullptr, ESP_LOGE(TAG, "Failed to create device energy management endpoint"));
+
+    device_energy_manager_endpoint_id = endpoint::get_id(device_energy_management_endpoint);
+    ESP_LOGI(TAG, "Device Energy Manager created with endpoint_id %d", device_energy_manager_endpoint_id);
 
     err = DishwasherMgr().Init();
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "DishwasherMgr::Init() failed, err:%d", err));
@@ -198,7 +204,7 @@ extern "C" void app_main()
     err = esp_matter::start(app_event_cb);
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "Failed to start Matter, err:%d", err));
 
-    //chip::app::Clusters::DishwasherMode::SetInstance(&sDishwasherModeDelegate);
+    // chip::app::Clusters::DishwasherMode::SetInstance(&sDishwasherModeDelegate);
 
 #if CONFIG_ENABLE_CHIP_SHELL
     esp_matter::console::diagnostics_register_commands();

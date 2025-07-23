@@ -105,12 +105,57 @@ void DishwasherManager::ToggleProgram()
     }
 }
 
+
+
+// TODO Return an error!
 void DishwasherManager::StartProgram()
 {
     mTimeRemaining = 30; // TODO Make this depend on the selected mode.
     mPhase = 0;
     UpdateCurrentPhase(mPhase);
     UpdateOperationState(OperationalStateEnum::kRunning);
+
+    uint32_t matterEpoch = 1753198404;
+
+    // CHIP_ERROR err = System::Clock::GetClock_MatterEpochS(matterEpoch);
+    
+    // if (err != CHIP_NO_ERROR)
+    // {
+    //     ESP_LOGI(TAG, "Unable to get current time - err:%s", err.AsString(true));
+    //     return;
+    // }
+
+    DataModel::Nullable<chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type> forecast = device_energy_management_delegate.GetForecast();
+
+    forecast.Value().startTime = matterEpoch + 60;
+    forecast.Value().earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
+    forecast.Value().endTime = matterEpoch + 60 + mTimeRemaining;
+    forecast.Value().isPausable = true;
+
+    forecast.Value().activeSlotNumber.SetNonNull(0);
+
+    chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type slots[1];
+
+    slots[0].minDuration       = 10;
+    slots[0].maxDuration       = 20;
+    slots[0].defaultDuration   = 15;
+    slots[0].elapsedSlotTime   = 0;
+    slots[0].remainingSlotTime = 0;
+
+    slots[0].slotIsPausable.SetValue(true);
+    slots[0].minPauseDuration.SetValue(10);
+    slots[0].maxPauseDuration.SetValue(60);
+
+        slots[0].nominalPower.SetValue(2500000);
+        slots[0].minPower.SetValue(1200000);
+        slots[0].maxPower.SetValue(7600000);
+        slots[0].nominalEnergy.SetValue(2000);
+
+       forecast.Value().slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(slots, 1);
+
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    device_energy_management_delegate.SetForecast(forecast);
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }
 
 void DishwasherManager::PauseProgram()
@@ -272,7 +317,7 @@ void DishwasherManager::UpdateCurrentPhase(uint8_t phase)
 {
     mPhase = phase;
 
-    //This is one way to perform safe changes to the Matter stack.
+    // This is one way to perform safe changes to the Matter stack.
     //
     chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateOperationalStatePhaseWorkHandler, mPhase);
 

@@ -21,6 +21,7 @@ using namespace chip::app;
 using namespace chip::app::Clusters;
 using namespace chip::app::Clusters::OperationalState;
 using namespace chip::app::Clusters::DeviceEnergyManagement;
+using namespace chip::app::Clusters::DeviceEnergyManagement::Attributes;
 using namespace chip::Protocols::InteractionModel;
 
 static const char *TAG = "app_driver";
@@ -135,8 +136,6 @@ void emberAfOperationalStateClusterInitCallback(chip::EndpointId endpointId)
     gOperationalStateInstance->SetCurrentPhase(0);
 
     gOperationalStateInstance->Init();
-
-    gOperationalStateDelegate->mEndpointId = endpointId;
 
     uint8_t value = to_underlying(OperationalStateEnum::kStopped);
     gOperationalStateDelegate->PostAttributeChangeCallback(chip::app::Clusters::OperationalState::Attributes::OperationalState::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
@@ -279,8 +278,8 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     VerifyOrDie(gDishwasherModeDelegate == nullptr && gDishwasherModeInstance == nullptr);
     gDishwasherModeDelegate = new DishwasherMode::DishwasherModeDelegate;
     // TODO Restore the deadfront support by setting the OnOff feature.
-    // gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
-    gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, 0);
+    //gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
+    gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, endpointId, DishwasherMode::Id, 0);
     gDishwasherModeInstance->Init();
 
     uint8_t currentMode = gDishwasherModeInstance->GetCurrentMode();
@@ -292,8 +291,7 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
 //* DEVICE ENERGY MANAGEMENT DELEGATE *
 //*************************************
 
-// static DeviceEnergyManagementDelegate *gDeviceEnergyManagementDelegate = nullptr;
-// static ModeBase::Instance *gDishwasherModeInstance = nullptr;
+chip::app::Clusters::DeviceEnergyManagement::DeviceEnergyManagementDelegate device_energy_management_delegate;
 
 Status DeviceEnergyManagementDelegate::PowerAdjustRequest(const int64_t powerMw, const uint32_t durationS, AdjustmentCauseEnum cause)
 {
@@ -329,6 +327,7 @@ Status DeviceEnergyManagementDelegate::RequestConstraintBasedForecast(const Data
 {
     return Status::Failure;
 }
+
 Status DeviceEnergyManagementDelegate::CancelRequest()
 {
     return Status::Failure;
@@ -369,17 +368,60 @@ CHIP_ERROR DeviceEnergyManagementDelegate::SetESAState(ESAStateEnum newValue)
     return CHIP_NO_ERROR;
 }
 
-DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
-DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast;
-
-chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> & DeviceEnergyManagementDelegate::GetPowerAdjustmentCapability()
+chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> &DeviceEnergyManagementDelegate::GetPowerAdjustmentCapability()
 {
     return mPowerAdjustCapabilityStruct;
 }
 
-chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> & DeviceEnergyManagementDelegate::GetForecast()
+chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> &DeviceEnergyManagementDelegate::GetForecast()
 {
+    ESP_LOGI(TAG, "Returning Forecast...");
+
+    if(mForecast.IsNull()) 
+    {
+        ESP_LOGI(TAG, "Forecast is null :(");
+    }
+    
     return mForecast;
+}
+
+CHIP_ERROR DeviceEnergyManagementDelegate::SetForecast(const chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> &forecast)
+{
+    ESP_LOGI(TAG, "Updating Forecast on Endpoint %d...", DeviceEnergyManagementDelegate::mEndpointId);
+
+    if(forecast.IsNull()) 
+    {
+        ESP_LOGI(TAG, "Forecast is null :(");
+    }
+
+    ESP_LOGI(TAG, "Forecast start time: %lu", forecast.Value().startTime);
+    ESP_LOGI(TAG, "Forecast slots: %d", forecast.Value().slots.size());
+
+    mForecast = forecast;
+
+    MatterReportingAttributeChangeCallback(DeviceEnergyManagementDelegate::mEndpointId, DeviceEnergyManagement::Id, DeviceEnergyManagement::Attributes::Forecast::Id);
+
+    return CHIP_NO_ERROR;
+}
+
+void emberAfDeviceEnergyManagementClusterInitCallback(chip::EndpointId endpointId)
+{
+    ESP_LOGI(TAG, "emberAfDeviceEnergyManagerClusterInitCallback()");
+
+    // VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
+    //VerifyOrDie(gOperationalStateInstance == nullptr && gOperationalStateDelegate == nullptr);
+
+    // gOperationalStateDelegate = new OperationalStateDelegate;
+    // gOperationalStateInstance = new OperationalState::Instance(gOperationalStateDelegate, endpointId);
+
+    // gOperationalStateInstance->SetOperationalState(to_underlying(OperationalState::OperationalStateEnum::kStopped));
+    // gOperationalStateInstance->SetCurrentPhase(0);
+
+    // gOperationalStateInstance->Init();
+
+    // uint8_t value = to_underlying(OperationalStateEnum::kStopped);
+    // gOperationalStateDelegate->PostAttributeChangeCallback(chip::app::Clusters::OperationalState::Attributes::OperationalState::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), &value);
+    // gOperationalStateDelegate->PostAttributeChangeCallback(chip::app::Clusters::OperationalState::Attributes::CurrentPhase::Id, ZCL_INT8U_ATTRIBUTE_TYPE, sizeof(uint8_t), 0);
 }
 
 //***********

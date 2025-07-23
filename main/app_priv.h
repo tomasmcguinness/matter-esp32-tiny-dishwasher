@@ -83,8 +83,6 @@ namespace chip
 
                     void PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t *value);
 
-                    EndpointId mEndpointId;
-
                 private:
                     const GenericOperationalState opStateList[4] = {
                         GenericOperationalState(to_underlying(OperationalStateEnum::kStopped)),
@@ -92,9 +90,9 @@ namespace chip
                         GenericOperationalState(to_underlying(OperationalStateEnum::kPaused)),
                         GenericOperationalState(to_underlying(OperationalStateEnum::kError)),
                     };
-                    const CharSpan phaseList[5] = {"pre-soak"_span, "main-wash"_span, "rinse"_span, "final-rinse"_span, "drying"_span};
-
                     app::DataModel::List<const GenericOperationalState> mOperationalStateList = Span<const GenericOperationalState>(opStateList);
+
+                    const CharSpan phaseList[5] = {"pre-soak"_span, "main-wash"_span, "rinse"_span, "final-rinse"_span, "drying"_span};
                     Span<const CharSpan> mOperationalPhaseList = Span<const CharSpan>(phaseList);
                 };
 
@@ -169,8 +167,6 @@ namespace chip
                     void PostAttributeChangeCallback(AttributeId attributeId, uint8_t type, uint16_t size, uint8_t *value);
 
                     Protocols::InteractionModel::Status SetDishwasherMode(uint8_t mode);
-
-                    EndpointId mEndpointId;
                 };
 
                 ModeBase::Instance *GetInstance();
@@ -195,6 +191,9 @@ namespace chip
                 class DeviceEnergyManagementDelegate : public DeviceEnergyManagement::Delegate
                 {
                 public:
+                    DeviceEnergyManagementDelegate() {     // Constructor
+                        ESP_LOGI("TEST","HELLO?");
+                    }
                     Status PowerAdjustRequest(const int64_t powerMw, const uint32_t durationS, AdjustmentCauseEnum cause);
                     Status CancelPowerAdjustRequest();
                     Status StartTimeAdjustRequest(const uint32_t requestedStartTime, AdjustmentCauseEnum cause);
@@ -216,13 +215,23 @@ namespace chip
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> & GetPowerAdjustmentCapability() override;
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> & GetForecast() override;
 
+                    CHIP_ERROR SetForecast(const chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> &);
+
                     ~DeviceEnergyManagementDelegate() override = default;
-                    EndpointId mEndpointId;
+
+                    private:
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
+                    chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type forecastStruct;  
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast = DataModel::MakeNullable(forecastStruct);
                 };
 
                 DeviceEnergyManagement::Instance *GetInstance();
-                DeviceEnergyManagement::Delegate *GetDelegate();
+                DeviceEnergyManagement::DeviceEnergyManagementDelegate *GetDelegate();
+
+                void Shutdown();
             }
         }
     }
 }
+
+extern chip::app::Clusters::DeviceEnergyManagement::DeviceEnergyManagementDelegate device_energy_management_delegate;

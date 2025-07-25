@@ -121,7 +121,9 @@ esp_err_t ModeSelector::Init()
     ESP_LOGI(TAG, "start pcnt unit");
     ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 
-    xTaskCreate(pulse_counter_monitor_task, "pulse_counter_monitor_task", 4096, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(pulse_counter_monitor_task, "pulse_counter_monitor_task", 1024, NULL, tskIDLE_PRIORITY, NULL);
+
+    ESP_LOGI(TAG, "mode_selector initialised");
 
     return ESP_OK;
 }

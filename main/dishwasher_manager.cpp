@@ -105,8 +105,6 @@ void DishwasherManager::ToggleProgram()
     }
 }
 
-
-
 // TODO Return an error!
 void DishwasherManager::StartProgram()
 {
@@ -115,47 +113,7 @@ void DishwasherManager::StartProgram()
     UpdateCurrentPhase(mPhase);
     UpdateOperationState(OperationalStateEnum::kRunning);
 
-    uint32_t matterEpoch = 1753198404;
-
-    // CHIP_ERROR err = System::Clock::GetClock_MatterEpochS(matterEpoch);
-    
-    // if (err != CHIP_NO_ERROR)
-    // {
-    //     ESP_LOGI(TAG, "Unable to get current time - err:%s", err.AsString(true));
-    //     return;
-    // }
-
-    DataModel::Nullable<chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type> forecast = device_energy_management_delegate.GetForecast();
-
-    forecast.Value().startTime = matterEpoch + 60;
-    forecast.Value().earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
-    forecast.Value().endTime = matterEpoch + 60 + mTimeRemaining;
-    forecast.Value().isPausable = true;
-
-    forecast.Value().activeSlotNumber.SetNonNull(0);
-
-    chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type slots[1];
-
-    slots[0].minDuration       = 10;
-    slots[0].maxDuration       = 20;
-    slots[0].defaultDuration   = 15;
-    slots[0].elapsedSlotTime   = 0;
-    slots[0].remainingSlotTime = 0;
-
-    slots[0].slotIsPausable.SetValue(true);
-    slots[0].minPauseDuration.SetValue(10);
-    slots[0].maxPauseDuration.SetValue(60);
-
-        slots[0].nominalPower.SetValue(2500000);
-        slots[0].minPower.SetValue(1200000);
-        slots[0].maxPower.SetValue(7600000);
-        slots[0].nominalEnergy.SetValue(2000);
-
-       forecast.Value().slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(slots, 1);
-
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    device_energy_management_delegate.SetForecast(forecast);
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    SetForecast();
 }
 
 void DishwasherManager::PauseProgram()
@@ -255,7 +213,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
             operational_state_delegate->GetOperationalPhaseAtIndex(mPhase, label);
 
-            int length = snprintf((char *)NULL, 0, "%s (%s)", time_buffer, status_buffer)  + 1; /* +1 for the null terminator */
+            int length = snprintf((char *)NULL, 0, "%s (%s)", time_buffer, status_buffer) + 1; /* +1 for the null terminator */
             status_formatted_buffer = (char *)malloc(length);
             snprintf(status_formatted_buffer, length, "%s (%s)", time_buffer, status_buffer);
 
@@ -265,7 +223,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
     StatusDisplayMgr().UpdateDisplay(state_text, mode_text, status_text);
 
-    if(status_formatted_buffer != NULL) 
+    if (status_formatted_buffer != NULL)
     {
         free(status_formatted_buffer);
     }
@@ -400,4 +358,56 @@ void DishwasherManager::SelectPreviousMode()
     ESP_LOGI(TAG, "Selected Mode: %d", mMode);
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateDishwasherCurrentModeWorkHandler, mMode);
+}
+
+// static void UpdateForecastWorkHandler(intptr_t context)
+// {
+//     ESP_LOGI(TAG, "UpdateOperationalStatePhaseWorkHandler()");
+//     uint8_t mode = (uint8_t)context;
+//     DishwasherMode::GetInstance()->UpdateCurrentMode(mode);
+//     DishwasherMgr().UpdateDishwasherDisplay();
+// }
+
+void DishwasherManager::SetForecast()
+{
+    uint32_t freeBefore = esp_get_minimum_free_heap_size();
+    ESP_LOGI(TAG,"Free Before: %lu", freeBefore);
+
+    uint32_t matterEpoch = 1753335026;
+
+    chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type newForecast;
+
+    newForecast.forecastID = 0;
+    newForecast.startTime = matterEpoch + 60;
+    newForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
+    newForecast.endTime = matterEpoch + 60 + mTimeRemaining;
+    newForecast.isPausable = true;
+
+    newForecast.activeSlotNumber.SetNonNull(0);
+
+    chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type slots[1];
+
+    slots[0].minDuration = 10;
+    slots[0].maxDuration = 20;
+    slots[0].defaultDuration = 15;
+    slots[0].elapsedSlotTime = 0;
+    slots[0].remainingSlotTime = 0;
+
+    slots[0].slotIsPausable.SetValue(true);
+    slots[0].minPauseDuration.SetValue(10);
+    slots[0].maxPauseDuration.SetValue(60);
+
+    slots[0].nominalPower.SetValue(2500000);
+    slots[0].minPower.SetValue(1200000);
+    slots[0].maxPower.SetValue(7600000);
+    slots[0].nominalEnergy.SetValue(2000);
+
+    newForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(slots, 1);
+
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(newForecast));
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+
+    uint32_t freeAfter = esp_get_minimum_free_heap_size();
+    ESP_LOGI(TAG,"Free: %lu", freeAfter);
 }

@@ -38,6 +38,8 @@ public:
     void EndProgram();
     void ProgressProgram();
 
+    void SetForecast();
+
 private:
     friend DishwasherManager & DishwasherMgr(void);
 

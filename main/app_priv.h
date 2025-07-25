@@ -191,8 +191,40 @@ namespace chip
                 class DeviceEnergyManagementDelegate : public DeviceEnergyManagement::Delegate
                 {
                 public:
-                    DeviceEnergyManagementDelegate() {     // Constructor
-                        ESP_LOGI("TEST","HELLO?");
+                    DeviceEnergyManagementDelegate()
+                    { // Constructor
+                        ESP_LOGI("DeviceEnergyManagementDelegate", "Instantiating");
+
+                        uint32_t matterEpoch = 1753335026;
+
+                        sForecast.forecastID = 0;
+                        sForecast.startTime = matterEpoch + 60;
+                        sForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
+                        sForecast.endTime = matterEpoch + 120;
+                        sForecast.isPausable = true;
+
+                        sForecast.activeSlotNumber.SetNonNull(0);
+
+                        chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type slots[1];
+
+                        slots[0].minDuration = 10;
+                        slots[0].maxDuration = 20;
+                        slots[0].defaultDuration = 15;
+                        slots[0].elapsedSlotTime = 0;
+                        slots[0].remainingSlotTime = 0;
+
+                        slots[0].slotIsPausable.SetValue(true);
+                        slots[0].minPauseDuration.SetValue(10);
+                        slots[0].maxPauseDuration.SetValue(60);
+
+                        slots[0].nominalPower.SetValue(2500000);
+                        slots[0].minPower.SetValue(1200000);
+                        slots[0].maxPower.SetValue(7600000);
+                        slots[0].nominalEnergy.SetValue(2000);
+
+                        sForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(slots, 1);
+
+                        mForecast = DataModel::MakeNullable(sForecast);
                     }
                     Status PowerAdjustRequest(const int64_t powerMw, const uint32_t durationS, AdjustmentCauseEnum cause);
                     Status CancelPowerAdjustRequest();
@@ -212,21 +244,18 @@ namespace chip
 
                     CHIP_ERROR SetESAState(ESAStateEnum newValue);
 
-                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> & GetPowerAdjustmentCapability() override;
-                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> & GetForecast() override;
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> &GetPowerAdjustmentCapability() override;
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> &GetForecast() override;
 
                     CHIP_ERROR SetForecast(const chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> &);
 
                     ~DeviceEnergyManagementDelegate() override = default;
 
-                    private:
+                private:
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
-                    chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type forecastStruct;  
-                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast = DataModel::MakeNullable(forecastStruct);
+                    DeviceEnergyManagement::Structs::ForecastStruct::Type sForecast;
+                    chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast;
                 };
-
-                DeviceEnergyManagement::Instance *GetInstance();
-                DeviceEnergyManagement::DeviceEnergyManagementDelegate *GetDelegate();
 
                 void Shutdown();
             }

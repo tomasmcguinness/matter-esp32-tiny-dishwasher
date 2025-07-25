@@ -381,6 +381,9 @@ chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::
     {
         ESP_LOGI(TAG, "Forecast is null :(");
     }
+
+    ESP_LOGI(TAG, "Forecast start time: %lu", mForecast.Value().startTime);
+    ESP_LOGI(TAG, "Forecast slots: %d", mForecast.Value().slots.size());
     
     return mForecast;
 }
@@ -393,10 +396,12 @@ CHIP_ERROR DeviceEnergyManagementDelegate::SetForecast(const chip::app::DataMode
     {
         ESP_LOGI(TAG, "Forecast is null :(");
     }
-
-    ESP_LOGI(TAG, "Forecast start time: %lu", forecast.Value().startTime);
-    ESP_LOGI(TAG, "Forecast slots: %d", forecast.Value().slots.size());
-
+    else 
+    {
+        ESP_LOGI(TAG, "Forecast start time: %lu", forecast.Value().startTime);
+        ESP_LOGI(TAG, "Forecast slots: %d", forecast.Value().slots.size());
+    }
+    
     mForecast = forecast;
 
     MatterReportingAttributeChangeCallback(DeviceEnergyManagementDelegate::mEndpointId, DeviceEnergyManagement::Id, DeviceEnergyManagement::Attributes::Forecast::Id);

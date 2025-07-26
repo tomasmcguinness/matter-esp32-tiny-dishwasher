@@ -305,7 +305,8 @@ Status DeviceEnergyManagementDelegate::CancelPowerAdjustRequest()
 
 Status DeviceEnergyManagementDelegate::StartTimeAdjustRequest(const uint32_t requestedStartTime, AdjustmentCauseEnum cause)
 {
-    return Status::Failure;
+    ESP_LOGI(TAG, "StartTime Adjustment received: New start time: %lu", requestedStartTime);
+    return Status::Success;
 }
 
 Status DeviceEnergyManagementDelegate::PauseRequest(const uint32_t duration, AdjustmentCauseEnum cause)

@@ -197,12 +197,13 @@ namespace chip
                     { 
                         ESP_LOGI("DeviceEnergyManagementDelegate", "Constructing");
 
-                        uint32_t matterEpoch = 1753335026;
+                        uint32_t currentTime = 1753335026;
 
                         sForecast.forecastID = 0;
-                        sForecast.startTime = matterEpoch + 60;
-                        sForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
-                        sForecast.endTime = matterEpoch + 120;
+                        sForecast.startTime = currentTime + 60;
+                        sForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(currentTime));
+                        sForecast.latestEndTime = MakeOptional(currentTime + 240);
+                        sForecast.endTime = currentTime + 120;
                         sForecast.isPausable = true;
 
                         sForecast.activeSlotNumber.SetNonNull(0);

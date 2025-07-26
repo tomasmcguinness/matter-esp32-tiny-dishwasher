@@ -191,9 +191,11 @@ namespace chip
                 class DeviceEnergyManagementDelegate : public DeviceEnergyManagement::Delegate
                 {
                 public:
+
+                    // Constructor
                     DeviceEnergyManagementDelegate()
-                    { // Constructor
-                        ESP_LOGI("DeviceEnergyManagementDelegate", "Instantiating");
+                    { 
+                        ESP_LOGI("DeviceEnergyManagementDelegate", "Constructing");
 
                         uint32_t matterEpoch = 1753335026;
 
@@ -205,24 +207,36 @@ namespace chip
 
                         sForecast.activeSlotNumber.SetNonNull(0);
 
-                        chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type slots[1];
+                        sSlots[0].minDuration = 60;
+                        sSlots[0].maxDuration = 60;
+                        sSlots[0].defaultDuration = 60;
+                        sSlots[0].elapsedSlotTime = 0;
+                        sSlots[0].remainingSlotTime = 0;
 
-                        slots[0].minDuration = 10;
-                        slots[0].maxDuration = 20;
-                        slots[0].defaultDuration = 15;
-                        slots[0].elapsedSlotTime = 0;
-                        slots[0].remainingSlotTime = 0;
+                        // slots[0].slotIsPausable.SetValue(true);
+                        // slots[0].minPauseDuration.SetValue(10);
+                        // slots[0].maxPauseDuration.SetValue(60);
 
-                        slots[0].slotIsPausable.SetValue(true);
-                        slots[0].minPauseDuration.SetValue(10);
-                        slots[0].maxPauseDuration.SetValue(60);
+                        sSlots[0].nominalPower.SetValue(2500000);
+                        // slots[0].minPower.SetValue(1200000);
+                        // slots[0].maxPower.SetValue(7600000);
+                        // slots[0].nominalEnergy.SetValue(2000);
 
-                        slots[0].nominalPower.SetValue(2500000);
-                        slots[0].minPower.SetValue(1200000);
-                        slots[0].maxPower.SetValue(7600000);
-                        slots[0].nominalEnergy.SetValue(2000);
+                        sSlots[1].minDuration = 60;
+                        sSlots[1].maxDuration = 60;
+                        sSlots[1].defaultDuration = 60;
+                        sSlots[1].elapsedSlotTime = 0;
+                        sSlots[1].remainingSlotTime = 0;
+                        sSlots[1].nominalPower.SetValue(2500000);
 
-                        sForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(slots, 1);
+                        sSlots[2].minDuration = 120;
+                        sSlots[2].maxDuration = 120;
+                        sSlots[2].defaultDuration = 120;
+                        sSlots[2].elapsedSlotTime = 0;
+                        sSlots[2].remainingSlotTime = 0;
+                        sSlots[2].nominalPower.SetValue(2500000);
+
+                        sForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, 3);
 
                         mForecast = DataModel::MakeNullable(sForecast);
                     }
@@ -253,7 +267,8 @@ namespace chip
 
                 private:
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
-                    DeviceEnergyManagement::Structs::ForecastStruct::Type sForecast;
+                    chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecast;
+                    chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast;
                 };
 

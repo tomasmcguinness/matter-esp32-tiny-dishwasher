@@ -381,10 +381,12 @@ chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::
     {
         ESP_LOGI(TAG, "Forecast is null :(");
     }
-
-    ESP_LOGI(TAG, "Forecast start time: %lu", mForecast.Value().startTime);
-    ESP_LOGI(TAG, "Forecast slots: %d", mForecast.Value().slots.size());
-    
+    else 
+    {
+        ESP_LOGI(TAG, "Forecast start time: %lu", mForecast.Value().startTime);
+        ESP_LOGI(TAG, "Forecast slots: %d", mForecast.Value().slots.size());
+        ESP_LOGI(TAG, "Slot[0] default duration: %lu", mForecast.Value().slots[0].defaultDuration);
+    }
     return mForecast;
 }
 

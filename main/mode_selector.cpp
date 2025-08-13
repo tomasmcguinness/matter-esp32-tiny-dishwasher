@@ -33,6 +33,8 @@ static void pulse_counter_monitor_task(void *arg)
 {
     while (1)
     {
+        ESP_LOGI(TAG, "Waiting for event on pulse_evt_queue");
+
         if (xQueueReceive(gpio_pulse_evt_queue, &event_count, pdMS_TO_TICKS(200)))
         {
             ESP_LOGI(TAG, "Watch point event, count: %d", event_count);
@@ -40,7 +42,7 @@ static void pulse_counter_monitor_task(void *arg)
         else
         {
             ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
-            //ESP_LOGI(TAG, "Current pulse count: %d", pulse_count);
+            // ESP_LOGI(TAG, "Current pulse count: %d", pulse_count);
 
             if (pulse_count != current_pulse_count)
             {
@@ -48,9 +50,9 @@ static void pulse_counter_monitor_task(void *arg)
 
                 current_pulse_count = pulse_count;
 
-                //ESP_LOGI(TAG, "Pulse Difference: %d", pulse_difference);
+                ESP_LOGI(TAG, "Pulse Difference: %d", pulse_difference);
 
-                if(pulse_difference < 0)
+                if (pulse_difference < 0)
                 {
                     DishwasherMgr().SelectNextMode();
                 }
@@ -70,8 +72,7 @@ esp_err_t ModeSelector::Init()
     pcnt_unit_config_t unit_config = {
         .low_limit = EXAMPLE_PCNT_LOW_LIMIT,
         .high_limit = EXAMPLE_PCNT_HIGH_LIMIT,
-        .intr_priority = 1
-    };
+        .intr_priority = 1};
 
     ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit));
 
@@ -121,7 +122,7 @@ esp_err_t ModeSelector::Init()
     ESP_LOGI(TAG, "start pcnt unit");
     ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 
-    xTaskCreate(pulse_counter_monitor_task, "pulse_counter_monitor_task", 1024, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(pulse_counter_monitor_task, "mode_selector_task", 2048, NULL, tskIDLE_PRIORITY, NULL);
 
     ESP_LOGI(TAG, "mode_selector initialised");
 

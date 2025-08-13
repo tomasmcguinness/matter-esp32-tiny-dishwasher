@@ -192,7 +192,6 @@ namespace chip
                 {
                 public:
 
-                    // Constructor
                     DeviceEnergyManagementDelegate()
                     { 
                         ESP_LOGI("DeviceEnergyManagementDelegate", "Constructing");

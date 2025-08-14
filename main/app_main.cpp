@@ -66,6 +66,14 @@ static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
         ESP_LOGI(TAG, "Commissioning window closed");
         break;
 
+    case chip::DeviceLayer::DeviceEventType::kBLEDeinitialized:
+        ESP_LOGI(TAG, "BLE deinitialized and memory reclaimed");
+        break;    
+
+    case chip::DeviceLayer::DeviceEventType::kServerReady:
+        ESP_LOGI(TAG, "Server is ready!");
+        break;    
+        
     default:
         break;
     }

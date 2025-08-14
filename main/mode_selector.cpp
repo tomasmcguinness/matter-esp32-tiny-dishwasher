@@ -33,7 +33,7 @@ static void pulse_counter_monitor_task(void *arg)
 {
     while (1)
     {
-        ESP_LOGI(TAG, "Waiting for event on pulse_evt_queue");
+        // ESP_LOGI(TAG, "Waiting for event on pulse_evt_queue");
 
         if (xQueueReceive(gpio_pulse_evt_queue, &event_count, pdMS_TO_TICKS(200)))
         {
@@ -50,7 +50,7 @@ static void pulse_counter_monitor_task(void *arg)
 
                 current_pulse_count = pulse_count;
 
-                ESP_LOGI(TAG, "Pulse Difference: %d", pulse_difference);
+                // ESP_LOGI(TAG, "Pulse Difference: %d", pulse_difference);
 
                 if (pulse_difference < 0)
                 {

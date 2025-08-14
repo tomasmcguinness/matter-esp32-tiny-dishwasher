@@ -278,7 +278,7 @@ void emberAfDishwasherModeClusterInitCallback(chip::EndpointId endpointId)
     VerifyOrDie(gDishwasherModeDelegate == nullptr && gDishwasherModeInstance == nullptr);
     gDishwasherModeDelegate = new DishwasherMode::DishwasherModeDelegate;
     // TODO Restore the deadfront support by setting the OnOff feature.
-    //gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
+    // gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, 0x1, DishwasherMode::Id, chip::to_underlying(chip::app::Clusters::DishwasherMode:: ::Feature::kOnOff));
     gDishwasherModeInstance = new ModeBase::Instance(gDishwasherModeDelegate, endpointId, DishwasherMode::Id, 0);
     gDishwasherModeInstance->Init();
 
@@ -378,16 +378,21 @@ chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::
 {
     ESP_LOGI(TAG, "Returning Forecast...");
 
-    if(mForecast.IsNull()) 
+    if (mForecast.IsNull())
     {
         ESP_LOGI(TAG, "Forecast is null :(");
     }
-    else 
+    else
     {
         ESP_LOGI(TAG, "Forecast start time: %lu", mForecast.Value().startTime);
         ESP_LOGI(TAG, "Forecast slots: %d", mForecast.Value().slots.size());
-        ESP_LOGI(TAG, "Slot[0] default duration: %lu", mForecast.Value().slots[0].defaultDuration);
+        //ESP_LOGI(TAG, "Slot[0] default duration: %lu", mForecast.Value().slots[0].defaultDuration);
     }
+
+    ESP_LOGI(TAG, "Current Free Memory\t%d\t\t%d", heap_caps_get_free_size(MALLOC_CAP_8BIT) - heap_caps_get_free_size(MALLOC_CAP_SPIRAM), heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+    ESP_LOGI(TAG, "Largest Free Block\t%d\t\t%d", heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL), heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
+    ESP_LOGI(TAG, "Min. Ever Free Size\t%d\t\t%d", heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL), heap_caps_get_minimum_free_size(MALLOC_CAP_SPIRAM));
+
     return mForecast;
 }
 
@@ -395,16 +400,17 @@ CHIP_ERROR DeviceEnergyManagementDelegate::SetForecast(const chip::app::DataMode
 {
     ESP_LOGI(TAG, "Updating Forecast on Endpoint %d...", DeviceEnergyManagementDelegate::mEndpointId);
 
-    if(forecast.IsNull()) 
+    if (forecast.IsNull())
     {
         ESP_LOGI(TAG, "Forecast is null :(");
     }
-    else 
+    else
     {
         ESP_LOGI(TAG, "Forecast start time: %lu", forecast.Value().startTime);
         ESP_LOGI(TAG, "Forecast slots: %d", forecast.Value().slots.size());
+        //ESP_LOGI(TAG, "Slot[0] default duration: %lu", mForecast.Value().slots[0].defaultDuration);
     }
-    
+
     mForecast = forecast;
 
     MatterReportingAttributeChangeCallback(DeviceEnergyManagementDelegate::mEndpointId, DeviceEnergyManagement::Id, DeviceEnergyManagement::Attributes::Forecast::Id);
@@ -417,7 +423,7 @@ void emberAfDeviceEnergyManagementClusterInitCallback(chip::EndpointId endpointI
     ESP_LOGI(TAG, "emberAfDeviceEnergyManagerClusterInitCallback()");
 
     // VerifyOrDie(endpointId == 1); // this cluster is only enabled for endpoint 1.
-    //VerifyOrDie(gOperationalStateInstance == nullptr && gOperationalStateDelegate == nullptr);
+    // VerifyOrDie(gOperationalStateInstance == nullptr && gOperationalStateDelegate == nullptr);
 
     // gOperationalStateDelegate = new OperationalStateDelegate;
     // gOperationalStateInstance = new OperationalState::Instance(gOperationalStateDelegate, endpointId);

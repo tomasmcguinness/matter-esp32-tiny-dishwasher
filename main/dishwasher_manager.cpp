@@ -368,12 +368,18 @@ void DishwasherManager::SelectPreviousMode()
 //     DishwasherMgr().UpdateDishwasherDisplay();
 // }
 
+//chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
+//chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
+
 void DishwasherManager::SetForecast()
 {
-    uint32_t freeBefore = esp_get_minimum_free_heap_size();
-    ESP_LOGI(TAG,"Free Before: %lu", freeBefore);
+    ESP_LOGI(TAG, "DishwasherManager::SetForecast()");
 
-    uint32_t matterEpoch = 1753335026;
+    // Get the current time.
+    //
+    struct timeval tv_now;
+    gettimeofday(&tv_now, NULL);
+    uint32_t matterEpoch = tv_now.tv_sec;
 
     chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type newForecast;
 
@@ -390,24 +396,20 @@ void DishwasherManager::SetForecast()
     slots[0].minDuration = 10;
     slots[0].maxDuration = 20;
     slots[0].defaultDuration = 15;
-    slots[0].elapsedSlotTime = 0;
-    slots[0].remainingSlotTime = 0;
+    //slots[0].elapsedSlotTime = 0;
+    //slots[0].remainingSlotTime = 0;
 
-    slots[0].slotIsPausable.SetValue(true);
-    slots[0].minPauseDuration.SetValue(10);
-    slots[0].maxPauseDuration.SetValue(60);
+    //slots[0].slotIsPausable.SetValue(true);
+    //slots[0].minPauseDuration.SetValue(10);
+    //slots[0].maxPauseDuration.SetValue(60);
 
-    slots[0].nominalPower.SetValue(2500000);
-    slots[0].minPower.SetValue(1200000);
-    slots[0].maxPower.SetValue(7600000);
-    slots[0].nominalEnergy.SetValue(2000);
-
-    newForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(slots, 1);
+    slots[0].nominalPower.SetValue(3000000);
+    slots[0].minPower.SetValue(3000000);
+    slots[0].maxPower.SetValue(3000000);
+    
+    //newForecast.slots = DataModel::List<DeviceEnergyManagement::Structs::SlotStruct::Type>(slots);
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     device_energy_management_delegate.SetForecast(DataModel::MakeNullable(newForecast));
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    uint32_t freeAfter = esp_get_minimum_free_heap_size();
-    ESP_LOGI(TAG,"Free: %lu", freeAfter);
 }

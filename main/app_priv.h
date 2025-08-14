@@ -196,49 +196,49 @@ namespace chip
                     { 
                         ESP_LOGI("DeviceEnergyManagementDelegate", "Constructing");
 
-                        uint32_t currentTime = 1753335026;
+                        // uint32_t currentTime = 1753335026;
 
-                        sForecast.forecastID = 0;
-                        sForecast.startTime = currentTime + 60;
-                        sForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(currentTime));
-                        sForecast.latestEndTime = MakeOptional(currentTime + 240);
-                        sForecast.endTime = currentTime + 120;
-                        sForecast.isPausable = true;
+                        // sForecast.forecastID = 0;
+                        // sForecast.startTime = currentTime + 60;
+                        // sForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(currentTime));
+                        // sForecast.latestEndTime = MakeOptional(currentTime + 240);
+                        // sForecast.endTime = currentTime + 120;
+                        // sForecast.isPausable = true;
 
-                        sForecast.activeSlotNumber.SetNonNull(0);
+                        // sForecast.activeSlotNumber.SetNonNull(0);
 
-                        sSlots[0].minDuration = 60;
-                        sSlots[0].maxDuration = 60;
-                        sSlots[0].defaultDuration = 60;
-                        sSlots[0].elapsedSlotTime = 0;
-                        sSlots[0].remainingSlotTime = 0;
+                        // sSlots[0].minDuration = 60;
+                        // sSlots[0].maxDuration = 60;
+                        // sSlots[0].defaultDuration = 60;
+                        // sSlots[0].elapsedSlotTime = 0;
+                        // sSlots[0].remainingSlotTime = 0;
 
-                        // slots[0].slotIsPausable.SetValue(true);
-                        // slots[0].minPauseDuration.SetValue(10);
-                        // slots[0].maxPauseDuration.SetValue(60);
+                        // // slots[0].slotIsPausable.SetValue(true);
+                        // // slots[0].minPauseDuration.SetValue(10);
+                        // // slots[0].maxPauseDuration.SetValue(60);
 
-                        sSlots[0].nominalPower.SetValue(2500000);
-                        // slots[0].minPower.SetValue(1200000);
-                        // slots[0].maxPower.SetValue(7600000);
-                        // slots[0].nominalEnergy.SetValue(2000);
+                        // sSlots[0].nominalPower.SetValue(2500000);
+                        // // slots[0].minPower.SetValue(1200000);
+                        // // slots[0].maxPower.SetValue(7600000);
+                        // // slots[0].nominalEnergy.SetValue(2000);
 
-                        sSlots[1].minDuration = 60;
-                        sSlots[1].maxDuration = 60;
-                        sSlots[1].defaultDuration = 60;
-                        sSlots[1].elapsedSlotTime = 0;
-                        sSlots[1].remainingSlotTime = 0;
-                        sSlots[1].nominalPower.SetValue(2500000);
+                        // sSlots[1].minDuration = 60;
+                        // sSlots[1].maxDuration = 60;
+                        // sSlots[1].defaultDuration = 60;
+                        // sSlots[1].elapsedSlotTime = 0;
+                        // sSlots[1].remainingSlotTime = 0;
+                        // sSlots[1].nominalPower.SetValue(2500000);
 
-                        sSlots[2].minDuration = 120;
-                        sSlots[2].maxDuration = 120;
-                        sSlots[2].defaultDuration = 120;
-                        sSlots[2].elapsedSlotTime = 0;
-                        sSlots[2].remainingSlotTime = 0;
-                        sSlots[2].nominalPower.SetValue(2500000);
+                        // sSlots[2].minDuration = 120;
+                        // sSlots[2].maxDuration = 120;
+                        // sSlots[2].defaultDuration = 120;
+                        // sSlots[2].elapsedSlotTime = 0;
+                        // sSlots[2].remainingSlotTime = 0;
+                        // sSlots[2].nominalPower.SetValue(2500000);
 
-                        sForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, 3);
+                        // sForecast.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, 3);
 
-                        mForecast = DataModel::MakeNullable(sForecast);
+                        // mForecast = DataModel::MakeNullable(sForecast);
                     }
                     Status PowerAdjustRequest(const int64_t powerMw, const uint32_t durationS, AdjustmentCauseEnum cause);
                     Status CancelPowerAdjustRequest();

@@ -3,10 +3,10 @@
 This code creates a "working" dishwasher that can be connected to and controlled via the Matter Protocol. Powered by the ESP32, it supports most of the Matter Dishwasher devicetype with the mandatory OperationalState cluster as well as the optional OnOff and DishwasherMode clusters.
 
 I've made a YouTube video which gives a demonstration: 
-https://youtu.be/BGIULIQ3aqs
+- [The tiny Dishwasher I built to help me learn more about the Matter smart home protocol](https://youtu.be/BGIULIQ3aqs)
 
 This blog post also goes into detail about the implementation and the challenges I faced during the development:
-https://tomasmcguinness.com/2025/06/27/matter-building-a-tiny-dishwasher-with-an-esp32/
+- [Matter – Building a Tiny Dishwasher with an ESP32](https://tomasmcguinness.com/2025/06/27/matter-building-a-tiny-dishwasher-with-an-esp32/)
 
 It has two push buttons and one rotary encoder.
 
@@ -67,10 +67,10 @@ chip-tool operationalstate start 0x05 0x01
 ## Device Energy Management
 
 I've made a start on this. It's still in its infancy, but when you start a cycle, the new Device Energy Management cluster will generate a forecast. The number of slots
-in the forecast mirrors the selected mode (Eco is one slot, Chef is 2 and Quick is three). It's filled with meaningless data for now. 
+in the forecast mirrors the selected mode (`Eco` is one slot, `Chef` is two and `Quick` is three). It's filled with meaningless data for now. 
 
-https://tomasmcguinness.com/2025/07/26/matter-tiny-dishwasher-adding-energy-forecast/
-https://tomasmcguinness.com/2025/08/14/matter-fixing-the-resource_exhausted-error-in-the-energy-forecast/
+- [Matter – Tiny Dishwasher – Adding Energy Forecast](https://tomasmcguinness.com/2025/07/26/matter-tiny-dishwasher-adding-energy-forecast/)
+- [Matter – Tiny Dishwasher – Fixing the RESOURCE_EXHAUSTED error in the energy forecast](https://tomasmcguinness.com/2025/08/14/matter-fixing-the-resource_exhausted-error-in-the-energy-forecast/)
 
 ## Things to do
 

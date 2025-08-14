@@ -64,13 +64,21 @@ chip-tool dishwashermode change-to-mode 1 0x05 0x01
 chip-tool operationalstate start 0x05 0x01
 ```
 
+## Device Energy Management
+
+I've made a start on this. It's still in its infancy, but when you start a cycle, the new Device Energy Management cluster will generate a forecast. The number of slots
+in the forecast mirrors the selected mode (Eco is one slot, Chef is 2 and Quick is three). It's filled with meaningless data for now. 
+
+https://tomasmcguinness.com/2025/07/26/matter-tiny-dishwasher-adding-energy-forecast/
+https://tomasmcguinness.com/2025/08/14/matter-fixing-the-resource_exhausted-error-in-the-energy-forecast/
+
 ## Things to do
 
 - [ ] Display a QR code or setup code if device is uncommissioned.
 - [ ] Implement the property DeadFront behaviour, where all changes are ignored whilst the device is off (I think!)
-- [ ] Reset Current Phase to 0 when Operational State is changed to Stopped.
-- [ ] Add energy management endpoint
-- [ ] Add energy forecast
+- [x] Reset Current Phase to 0 when Operational State is changed to Stopped.
+- [x] Add energy management endpoint
+- [x] Add basic energy forecast
 - [ ] Create a hex file for easier flashing (without needing the whole ESP-IDF setup!)
 
 ## Feedback please!

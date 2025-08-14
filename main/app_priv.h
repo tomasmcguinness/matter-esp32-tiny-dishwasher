@@ -267,8 +267,6 @@ namespace chip
 
                 private:
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
-                    chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecast;
-                    chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast;
                 };
 

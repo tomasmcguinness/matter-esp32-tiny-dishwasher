@@ -368,8 +368,8 @@ void DishwasherManager::SelectPreviousMode()
 //     DishwasherMgr().UpdateDishwasherDisplay();
 // }
 
-//chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
-//chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
+chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
+chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
 
 void DishwasherManager::SetForecast()
 {
@@ -381,35 +381,58 @@ void DishwasherManager::SetForecast()
     gettimeofday(&tv_now, NULL);
     uint32_t matterEpoch = tv_now.tv_sec;
 
-    chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type newForecast;
+    sForecastStruct.forecastID = 0;
+    sForecastStruct.startTime = matterEpoch + 60;
+    sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
+    sForecastStruct.endTime = matterEpoch + 60 + mTimeRemaining;
+    sForecastStruct.isPausable = true;
 
-    newForecast.forecastID = 0;
-    newForecast.startTime = matterEpoch + 60;
-    newForecast.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
-    newForecast.endTime = matterEpoch + 60 + mTimeRemaining;
-    newForecast.isPausable = true;
+    sForecastStruct.activeSlotNumber.SetNonNull(0);
 
-    newForecast.activeSlotNumber.SetNonNull(0);
 
-    chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type slots[1];
+    int32_t slot_count = 1;
 
-    slots[0].minDuration = 10;
-    slots[0].maxDuration = 20;
-    slots[0].defaultDuration = 15;
-    //slots[0].elapsedSlotTime = 0;
-    //slots[0].remainingSlotTime = 0;
+    sSlots[0].minDuration = 10;
+    sSlots[0].maxDuration = 20;
+    sSlots[0].defaultDuration = 15;
+    // slots[0].elapsedSlotTime = 0;
+    // slots[0].remainingSlotTime = 0;
 
-    //slots[0].slotIsPausable.SetValue(true);
-    //slots[0].minPauseDuration.SetValue(10);
-    //slots[0].maxPauseDuration.SetValue(60);
+    // slots[0].slotIsPausable.SetValue(true);
+    // slots[0].minPauseDuration.SetValue(10);
+    // slots[0].maxPauseDuration.SetValue(60);
 
-    slots[0].nominalPower.SetValue(3000000);
-    slots[0].minPower.SetValue(3000000);
-    slots[0].maxPower.SetValue(3000000);
-    
-    //newForecast.slots = DataModel::List<DeviceEnergyManagement::Structs::SlotStruct::Type>(slots);
+    sSlots[0].nominalPower.SetValue(3000000);
+    sSlots[0].minPower.SetValue(3000000);
+    sSlots[0].maxPower.SetValue(3000000);
+
+    if (mMode >= 1)
+    {
+        sSlots[1].minDuration = 10;
+        sSlots[1].maxDuration = 20;
+        sSlots[1].defaultDuration = 15;
+        sSlots[1].nominalPower.SetValue(3000000);
+        sSlots[1].minPower.SetValue(3000000);
+        sSlots[1].maxPower.SetValue(3000000);
+
+        slot_count = 2;
+    }
+
+    if (mMode >= 2)
+    {
+        sSlots[2].minDuration = 10;
+        sSlots[2].maxDuration = 20;
+        sSlots[2].defaultDuration = 15;
+        sSlots[2].nominalPower.SetValue(3000000);
+        sSlots[2].minPower.SetValue(3000000);
+        sSlots[2].maxPower.SetValue(3000000);
+
+        slot_count = 3;
+    }
+
+    sForecastStruct.slots = DataModel::List<DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, slot_count);
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
-    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(newForecast));
+    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }

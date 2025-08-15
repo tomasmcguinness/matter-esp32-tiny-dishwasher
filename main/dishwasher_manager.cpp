@@ -388,8 +388,7 @@ void DishwasherManager::SetForecast()
     sForecastStruct.isPausable = true;
 
     sForecastStruct.activeSlotNumber.SetNonNull(0);
-
-
+    
     int32_t slot_count = 1;
 
     sSlots[0].minDuration = 10;

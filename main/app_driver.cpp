@@ -474,8 +474,6 @@ esp_err_t app_driver_init()
     button_handle_t onoff_handle = iot_button_create(&onoff_config);
 
     ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_START, onoff_button_long_press_start_cb, NULL));
-    //ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_LONG_PRESS_HOLD, button_factory_reset_pressed_cb, NULL));
-    //ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_PRESS_UP, button_factory_reset_released_cb, NULL));
     ESP_ERROR_CHECK(iot_button_register_cb(onoff_handle, BUTTON_SINGLE_CLICK, onoff_button_single_click_cb, NULL));
 
     button_config_t start_config;

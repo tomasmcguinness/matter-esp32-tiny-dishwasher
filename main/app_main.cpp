@@ -60,6 +60,7 @@ static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 
     case chip::DeviceLayer::DeviceEventType::kCommissioningWindowOpened:
         ESP_LOGI(TAG, "Commissioning window opened");
+        //chip::RendezvousInformationFlag(chip::RendezvousInformationFlag::kBLE);
         break;
 
     case chip::DeviceLayer::DeviceEventType::kCommissioningWindowClosed:
@@ -103,6 +104,7 @@ static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint
                 if (attribute_id == OnOff::Attributes::OnOff::Id)
                 {
                     ESP_LOGI(TAG, "OnOff attribute updated to: %s!", val->val.b ? "on" : "off");
+
                     if (val->val.b)
                     {
                         DishwasherMgr().TurnOnPower();
@@ -174,8 +176,9 @@ extern "C" void app_main()
     // Add the On/Off cluster to the dishwasher endpoint and mark it with the dead front behavior feature.
     //
     esp_matter::cluster::on_off::config_t on_off_config;
+    //on_off_config.feature_flags = , esp_matter::cluster::on_off::feature::dead_front_behavior::get_id();
     on_off_config.on_off = false; // Initial state of the On/Off cluster
-    esp_matter::cluster::on_off::create(endpoint, &on_off_config, CLUSTER_FLAG_SERVER, esp_matter::cluster::on_off::feature::dead_front_behavior::get_id());
+    esp_matter::cluster::on_off::create(endpoint, &on_off_config, CLUSTER_FLAG_SERVER);
 
     dish_washer_endpoint_id = endpoint::get_id(endpoint);
     ESP_LOGI(TAG, "Dishwasher created with endpoint_id %d", dish_washer_endpoint_id);
@@ -184,7 +187,7 @@ extern "C" void app_main()
      * Add DeviceEnergyManagement
      */
     esp_matter::endpoint::device_energy_management::config_t device_energy_management_config;
-    device_energy_management_config.device_energy_management.feature_flags = esp_matter::cluster::device_energy_management::feature::power_forecast_reporting::get_id() | esp_matter::cluster::device_energy_management::feature::start_time_adjustment::get_id() |  esp_matter::cluster::device_energy_management::feature::power_adjustment::get_id();
+    //device_energy_management_config.device_energy_management.feature_flags = esp_matter::cluster::device_energy_management::feature::power_forecast_reporting::get_id() | esp_matter::cluster::device_energy_management::feature::start_time_adjustment::get_id() |  esp_matter::cluster::device_energy_management::feature::power_adjustment::get_id();
     device_energy_management_config.device_energy_management.delegate = &device_energy_management_delegate;
 
     endpoint_t *device_energy_management_endpoint = esp_matter::endpoint::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, ESP_MATTER_NONE_FEATURE_ID);
@@ -211,8 +214,6 @@ extern "C" void app_main()
     /* Matter start */
     err = esp_matter::start(app_event_cb);
     ABORT_APP_ON_FAILURE(err == ESP_OK, ESP_LOGE(TAG, "Failed to start Matter, err:%d", err));
-
-    // chip::app::Clusters::DishwasherMode::SetInstance(&sDishwasherModeDelegate);
 
 #if CONFIG_ENABLE_CHIP_SHELL
     esp_matter::console::diagnostics_register_commands();

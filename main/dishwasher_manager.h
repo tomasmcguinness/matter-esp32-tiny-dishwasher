@@ -19,6 +19,10 @@ public:
     void PauseProgram();
     void ResumeProgram();
 
+    void HandleOnOffClicked();
+    void HandleStartClicked();
+    void PresentReset();
+
     OperationalStateEnum GetOperationalState();
 
     uint32_t GetTimeRemaining();
@@ -52,6 +56,7 @@ private:
     uint8_t mPhase; 
     uint32_t mTimeRemaining;
     bool mIsPoweredOn = false;
+    bool mIsShowingReset = false;
 };
 
 inline DishwasherManager & DishwasherMgr(void)

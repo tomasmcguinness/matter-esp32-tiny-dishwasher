@@ -40,6 +40,30 @@ esp_err_t DishwasherManager::Init()
     return ESP_OK;
 }
 
+void DishwasherManager::PresentReset() {
+    mIsShowingReset = true;
+    StatusDisplayMgr().ShowResetOptions();
+}
+
+void DishwasherManager::HandleOnOffClicked() {
+    if(mIsShowingReset) 
+    {
+        StatusDisplayMgr().HideResetOptions();
+        mIsShowingReset = false;
+    } else {
+        TogglePower();
+    }
+}
+
+void DishwasherManager::HandleStartClicked() {
+    if(mIsShowingReset) {
+        esp_matter::factory_reset();
+        mIsShowingReset = false;        
+    } else {
+        ToggleProgram();
+    }
+}
+
 uint32_t DishwasherManager::GetTimeRemaining()
 {
     return mTimeRemaining;
@@ -387,7 +411,7 @@ void DishwasherManager::SetForecast()
     sForecastStruct.endTime = matterEpoch + 60 + mTimeRemaining;
     sForecastStruct.isPausable = true;
 
-    sForecastStruct.activeSlotNumber.SetNonNull(0);
+    //sForecastStruct.activeSlotNumber.SetNull();
     
     int32_t slot_count = 1;
 

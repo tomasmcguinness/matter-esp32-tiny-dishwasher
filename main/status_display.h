@@ -21,6 +21,9 @@ public:
 
     void UpdateDisplay(const char *state_text, const char *mode_text, const char *status_text);
 
+    void ShowResetOptions();
+    void HideResetOptions();
+
 private:
     friend StatusDisplay & StatusDisplayMgr(void);
     static StatusDisplay sStatusDisplay;
@@ -30,6 +33,9 @@ private:
     lv_obj_t *mStatusLabel;
     lv_obj_t *mStateLabel;
     lv_obj_t *mModeLabel;
+    lv_obj_t *mResetMessageLabel;
+    lv_obj_t *mYesButtonLabel;
+    lv_obj_t *mNoButtonLabel;
 };
 
 inline StatusDisplay & StatusDisplayMgr(void)

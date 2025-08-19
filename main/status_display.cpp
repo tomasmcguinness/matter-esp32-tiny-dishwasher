@@ -126,6 +126,28 @@ esp_err_t StatusDisplay::Init()
     lv_obj_set_width(mStatusLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mStatusLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
+    mResetMessageLabel = lv_label_create(scr);
+
+    lv_label_set_text(mResetMessageLabel, "Reset the device?");
+    lv_obj_set_width(mResetMessageLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_add_flag(mResetMessageLabel, LV_OBJ_FLAG_HIDDEN);
+
+    mYesButtonLabel = lv_label_create(scr);
+
+    lv_label_set_text(mYesButtonLabel, "Yes");
+    lv_obj_set_width(mYesButtonLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_add_flag(mYesButtonLabel, LV_OBJ_FLAG_HIDDEN);
+
+    mNoButtonLabel = lv_label_create(scr);
+
+    lv_label_set_text(mNoButtonLabel, "No");
+    lv_obj_set_width(mNoButtonLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_add_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_align(mResetMessageLabel, LV_ALIGN_TOP_MID, 0, 0);
+    lv_obj_align(mYesButtonLabel, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    lv_obj_align(mNoButtonLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
     return ESP_OK;
@@ -154,4 +176,30 @@ void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text,
     lv_label_set_text(mStateLabel, state_text);
     lv_label_set_text(mModeLabel, mode_text);
     lv_label_set_text(mStatusLabel, status_text);
+}
+
+void StatusDisplay::ShowResetOptions() {
+
+    ESP_LOGI(TAG, "Show reset options");
+
+    lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_clear_flag(mResetMessageLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(mYesButtonLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);
+}
+
+void StatusDisplay::HideResetOptions() {
+
+    ESP_LOGI(TAG, "Hide reset options");
+
+    lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_add_flag(mResetMessageLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mYesButtonLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);
 }

@@ -40,26 +40,34 @@ esp_err_t DishwasherManager::Init()
     return ESP_OK;
 }
 
-void DishwasherManager::PresentReset() {
+void DishwasherManager::PresentReset() 
+{
     mIsShowingReset = true;
     StatusDisplayMgr().ShowResetOptions();
 }
 
-void DishwasherManager::HandleOnOffClicked() {
+void DishwasherManager::HandleOnOffClicked()
+{
     if(mIsShowingReset) 
     {
         StatusDisplayMgr().HideResetOptions();
         mIsShowingReset = false;
-    } else {
+    } 
+    else 
+    {
         TogglePower();
     }
 }
 
-void DishwasherManager::HandleStartClicked() {
-    if(mIsShowingReset) {
+void DishwasherManager::HandleStartClicked() 
+{
+    if(mIsShowingReset) 
+    {
         esp_matter::factory_reset();
         mIsShowingReset = false;        
-    } else {
+    }
+    else 
+    {
         ToggleProgram();
     }
 }

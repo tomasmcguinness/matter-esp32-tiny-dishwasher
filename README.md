@@ -5,10 +5,12 @@ This code creates a "working" dishwasher that can be connected to and controlled
 I've made a YouTube video which gives a demonstration: 
 https://youtu.be/BGIULIQ3aqs
 
-This blog post also goes into detail about the implementation and the challenges I faced during the development:
-https://tomasmcguinness.com/2025/06/27/matter-building-a-tiny-dishwasher-with-an-esp32/
+I've pull all the blog posts I have written on this subject into a single place
+https://tomasmcguinness.com/tiny-matter-dishwasher/
 
-It has two push buttons and one rotary encoder.
+## Hardware
+
+It has two push buttons and one rotary encoder. Information is presented on an OLED screen.
 
 * The first push button acts as the on/off button. Push it once to turn the device on and off. At present, it just controls the display.
 * The second push button as a start/stop/pause/resume button.
@@ -55,9 +57,11 @@ To commission the device, follow the instuctions here https://docs.espressif.com
 
 ## Using
 
-I use the `chip-tool` for most testing, since Dishwashers aren't supported in iOS or Android. The Aqara M100 hub has rudimentary support for Matter appliances.
+I use the `chip-tool` for most testing, since Dishwashers (or any applicances) aren't supported in iOS Home or Google Home. 
 
-Some example commands (based on a NodeId of 0x05) for turning it on, selecting a program and starting it.
+The Aqara M100 hub has rudimentary support for Matter appliances. You can start/stop/pause/resume.
+
+Some example `chip-tool` commands (based on a NodeId of 0x05) for turning it on, selecting a program and starting it.
 
 ```
 chip-tool onoff on 0x05 0x01
@@ -65,6 +69,8 @@ chip-tool dishwashermode read supported-modes 0x05 0x01
 chip-tool dishwashermode change-to-mode 1 0x05 0x01
 chip-tool operationalstate start 0x05 0x01
 ```
+
+As you execute these commands, the UI on the dishwasher would reflect them.
 
 ## Device Energy Management
 

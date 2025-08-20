@@ -74,8 +74,7 @@ As you execute these commands, the UI on the dishwasher would reflect them.
 
 ## Device Energy Management
 
-I've made a start on this. It's still in its infancy, but when you start a cycle, the new Device Energy Management cluster will generate a forecast. The number of slots
-in the forecast mirrors the selected mode (Eco is one slot, Chef is 2 and Quick is three). It's filled with meaningless data for now. 
+I've made a start on this. It's still in its infancy, but when you start a cycle, the new Device Energy Management cluster will generate a forecast. The number of slots in the forecast mirrors the selected mode (Eco is one slot, Chef is 2 and Quick is three). It's filled with meaningless data for now. 
 
 https://tomasmcguinness.com/2025/07/26/matter-tiny-dishwasher-adding-energy-forecast/
 https://tomasmcguinness.com/2025/08/14/matter-fixing-the-resource_exhausted-error-in-the-energy-forecast/

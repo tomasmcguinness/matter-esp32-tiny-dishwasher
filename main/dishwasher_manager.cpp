@@ -40,7 +40,7 @@ esp_err_t DishwasherManager::Init()
     return ESP_OK;
 }
 
-void DishwasherManager::PresentReset() 
+void DishwasherManager::PresentReset()
 {
     mIsShowingReset = true;
     StatusDisplayMgr().ShowResetOptions();
@@ -48,25 +48,25 @@ void DishwasherManager::PresentReset()
 
 void DishwasherManager::HandleOnOffClicked()
 {
-    if(mIsShowingReset) 
+    if (mIsShowingReset)
     {
         StatusDisplayMgr().HideResetOptions();
         mIsShowingReset = false;
-    } 
-    else 
+    }
+    else
     {
         TogglePower();
     }
 }
 
-void DishwasherManager::HandleStartClicked() 
+void DishwasherManager::HandleStartClicked()
 {
-    if(mIsShowingReset) 
+    if (mIsShowingReset)
     {
         esp_matter::factory_reset();
-        mIsShowingReset = false;        
+        mIsShowingReset = false;
     }
-    else 
+    else
     {
         ToggleProgram();
     }
@@ -137,13 +137,107 @@ void DishwasherManager::ToggleProgram()
     }
 }
 
-// TODO Return an error!
+// Track this separately as we need to set some values in the forecast struct.
+//
+chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
+chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
+
+uint32_t mCurrentForecastId = 0;
+
 void DishwasherManager::StartProgram()
 {
-    mTimeRemaining = 30; // TODO Make this depend on the selected mode.
     mPhase = 0;
+    mTimeRemaining = 90;
+
     UpdateCurrentPhase(mPhase);
     UpdateOperationState(OperationalStateEnum::kRunning);
+
+    // Configure the forecast for the selected program.
+    //
+
+    // Get the current time.
+    //
+    struct timeval tv_now;
+    gettimeofday(&tv_now, NULL);
+    uint32_t matterEpoch = tv_now.tv_sec;
+
+    System::Clock::Microseconds64 utcTime;
+    chip::System::SystemClock().GetClock_RealTime(utcTime);
+
+    time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
+
+    ESP_LOGI(TAG, "Current time: %lu", matterEpoch);
+    ESP_LOGI(TAG, "Matter time: %llu", unixEpoch);
+
+    char buf[50];
+    tm calendarTime{};
+    localtime_r(&unixEpoch, &calendarTime);
+	ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
+
+    sForecastStruct.forecastID = 0;
+    sForecastStruct.startTime = matterEpoch + 30; // Start in 30 seconds
+    sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
+    sForecastStruct.endTime = matterEpoch + 60 + mTimeRemaining;
+    sForecastStruct.isPausable = false; // We cannot pause any part of this forecast for now.
+    sForecastStruct.activeSlotNumber.SetNonNull(0);
+
+    int32_t slot_count = 1;
+
+    sSlots[0].minDuration = 10;
+    sSlots[0].maxDuration = 20;
+    sSlots[0].defaultDuration = 15;
+
+    // slots[0].elapsedSlotTime = 0;
+    // slots[0].remainingSlotTime = 0;
+
+    // slots[0].slotIsPausable.SetValue(true);
+    // slots[0].minPauseDuration.SetValue(10);
+    // slots[0].maxPauseDuration.SetValue(60);
+
+    sSlots[0].nominalPower.SetValue(3000000);
+    sSlots[0].minPower.SetValue(3000000);
+    sSlots[0].maxPower.SetValue(3000000);
+
+    if (mMode >= 1)
+    {
+        sSlots[1].minDuration = 10;
+        sSlots[1].maxDuration = 20;
+        sSlots[1].defaultDuration = 15;
+        sSlots[1].nominalPower.SetValue(3000000);
+        sSlots[1].minPower.SetValue(3000000);
+        sSlots[1].maxPower.SetValue(3000000);
+
+        slot_count = 2;
+
+        mTimeRemaining = 60;
+    }
+
+    if (mMode >= 2)
+    {
+        sSlots[2].minDuration = 10;
+        sSlots[2].maxDuration = 20;
+        sSlots[2].defaultDuration = 15;
+        sSlots[2].nominalPower.SetValue(3000000);
+        sSlots[2].minPower.SetValue(3000000);
+        sSlots[2].maxPower.SetValue(3000000);
+
+        slot_count = 3;
+
+        mTimeRemaining = 90;
+    }
+
+    sForecastStruct.slots = DataModel::List<DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, slot_count);
+
+    SetForecast();
+}
+
+void DishwasherManager::AdjustStartTime(uint32_t new_start_time)
+{
+    // TODO If the program has started, we can't adjust the start time.
+    //
+    sForecastStruct.startTime = new_start_time;
+    sForecastStruct.endTime = new_start_time + (mMode * 30) + 30;
+    sForecastStruct.forecastUpdateReason = DeviceEnergyManagement::ForecastUpdateReasonEnum::kGridOptimization;
 
     SetForecast();
 }
@@ -400,68 +494,9 @@ void DishwasherManager::SelectPreviousMode()
 //     DishwasherMgr().UpdateDishwasherDisplay();
 // }
 
-chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
-chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
-
 void DishwasherManager::SetForecast()
 {
     ESP_LOGI(TAG, "DishwasherManager::SetForecast()");
-
-    // Get the current time.
-    //
-    struct timeval tv_now;
-    gettimeofday(&tv_now, NULL);
-    uint32_t matterEpoch = tv_now.tv_sec;
-
-    sForecastStruct.forecastID = 0;
-    sForecastStruct.startTime = matterEpoch + 60;
-    sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
-    sForecastStruct.endTime = matterEpoch + 60 + mTimeRemaining;
-    sForecastStruct.isPausable = true;
-
-    //sForecastStruct.activeSlotNumber.SetNull();
-    
-    int32_t slot_count = 1;
-
-    sSlots[0].minDuration = 10;
-    sSlots[0].maxDuration = 20;
-    sSlots[0].defaultDuration = 15;
-    // slots[0].elapsedSlotTime = 0;
-    // slots[0].remainingSlotTime = 0;
-
-    // slots[0].slotIsPausable.SetValue(true);
-    // slots[0].minPauseDuration.SetValue(10);
-    // slots[0].maxPauseDuration.SetValue(60);
-
-    sSlots[0].nominalPower.SetValue(3000000);
-    sSlots[0].minPower.SetValue(3000000);
-    sSlots[0].maxPower.SetValue(3000000);
-
-    if (mMode >= 1)
-    {
-        sSlots[1].minDuration = 10;
-        sSlots[1].maxDuration = 20;
-        sSlots[1].defaultDuration = 15;
-        sSlots[1].nominalPower.SetValue(3000000);
-        sSlots[1].minPower.SetValue(3000000);
-        sSlots[1].maxPower.SetValue(3000000);
-
-        slot_count = 2;
-    }
-
-    if (mMode >= 2)
-    {
-        sSlots[2].minDuration = 10;
-        sSlots[2].maxDuration = 20;
-        sSlots[2].defaultDuration = 15;
-        sSlots[2].nominalPower.SetValue(3000000);
-        sSlots[2].minPower.SetValue(3000000);
-        sSlots[2].maxPower.SetValue(3000000);
-
-        slot_count = 3;
-    }
-
-    sForecastStruct.slots = DataModel::List<DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, slot_count);
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));

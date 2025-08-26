@@ -20,6 +20,8 @@
 
 #include "dishwasher_manager.h"
 
+#include "esp_netif_sntp.h"
+
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
 #include <platform/ESP32/OpenthreadLauncher.h>
 #endif
@@ -38,9 +40,14 @@ static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 {
     switch (event->Type)
     {
+    case chip::DeviceLayer::DeviceEventType::kTimeSyncChange:
+        ESP_LOGI(TAG, "Time Sync Change");
+        break;
+
     case chip::DeviceLayer::DeviceEventType::kInterfaceIpAddressChanged:
         ESP_LOGI(TAG, "Interface IP Address Changed");
-        break;
+        ESP_LOGI(TAG, "Synchronizing time with SNTP server");
+       break;
 
     case chip::DeviceLayer::DeviceEventType::kCommissioningComplete:
         ESP_LOGI(TAG, "Commissioning complete");
@@ -60,7 +67,7 @@ static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 
     case chip::DeviceLayer::DeviceEventType::kCommissioningWindowOpened:
         ESP_LOGI(TAG, "Commissioning window opened");
-        //chip::RendezvousInformationFlag(chip::RendezvousInformationFlag::kBLE);
+        // chip::RendezvousInformationFlag(chip::RendezvousInformationFlag::kBLE);
         break;
 
     case chip::DeviceLayer::DeviceEventType::kCommissioningWindowClosed:
@@ -69,12 +76,12 @@ static void app_event_cb(const ChipDeviceEvent *event, intptr_t arg)
 
     case chip::DeviceLayer::DeviceEventType::kBLEDeinitialized:
         ESP_LOGI(TAG, "BLE deinitialized and memory reclaimed");
-        break;    
+        break;
 
     case chip::DeviceLayer::DeviceEventType::kServerReady:
         ESP_LOGI(TAG, "Server is ready!");
-        break;    
-        
+        break;
+
     default:
         break;
     }
@@ -163,8 +170,8 @@ extern "C" void app_main()
     // At this time, I'm using the emberAfDishwasherModeClusterInitCallback method to create the instance.
     // This appears to work!
     //
-    //dish_washer_mode_config.delegate = &dish_washer_mode_delegate;
-    //dish_washer_mode_config.current_mode = DishwasherMode::ModeHeavy; // Set the initial mode
+    // dish_washer_mode_config.delegate = &dish_washer_mode_delegate;
+    // dish_washer_mode_config.current_mode = DishwasherMode::ModeHeavy; // Set the initial mode
 
     esp_matter::cluster_t *dish_washer_mode_cluster = esp_matter::cluster::dish_washer_mode::create(endpoint, &dish_washer_mode_config, CLUSTER_FLAG_SERVER);
     ABORT_APP_ON_FAILURE(dish_washer_mode_cluster != nullptr, ESP_LOGE(TAG, "Failed to create dishwashermode cluster"));
@@ -186,7 +193,7 @@ extern "C" void app_main()
      * Add DeviceEnergyManagement
      */
     esp_matter::endpoint::device_energy_management::config_t device_energy_management_config;
-    //device_energy_management_config.device_energy_management.feature_flags = esp_matter::cluster::device_energy_management::feature::power_forecast_reporting::get_id() | esp_matter::cluster::device_energy_management::feature::start_time_adjustment::get_id() |  esp_matter::cluster::device_energy_management::feature::power_adjustment::get_id();
+    device_energy_management_config.device_energy_management.feature_flags = esp_matter::cluster::device_energy_management::feature::power_forecast_reporting::get_id() | esp_matter::cluster::device_energy_management::feature::start_time_adjustment::get_id();
     device_energy_management_config.device_energy_management.delegate = &device_energy_management_delegate;
 
     endpoint_t *device_energy_management_endpoint = esp_matter::endpoint::device_energy_management::create(node, &device_energy_management_config, ENDPOINT_FLAG_NONE, ESP_MATTER_NONE_FEATURE_ID);
@@ -209,6 +216,9 @@ extern "C" void app_main()
     };
     set_openthread_platform_config(&config);
 #endif
+
+    esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("2.pool.ntp.org");
+    esp_netif_sntp_init(&config);
 
     /* Matter start */
     err = esp_matter::start(app_event_cb);

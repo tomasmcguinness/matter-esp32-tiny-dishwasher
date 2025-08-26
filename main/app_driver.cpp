@@ -306,6 +306,9 @@ Status DeviceEnergyManagementDelegate::CancelPowerAdjustRequest()
 Status DeviceEnergyManagementDelegate::StartTimeAdjustRequest(const uint32_t requestedStartTime, AdjustmentCauseEnum cause)
 {
     ESP_LOGI(TAG, "StartTime Adjustment received: New start time: %lu", requestedStartTime);
+
+    DishwasherMgr().AdjustStartTime(requestedStartTime);
+
     return Status::Success;
 }
 
@@ -386,7 +389,6 @@ chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::
     {
         ESP_LOGI(TAG, "Forecast start time: %lu", mForecast.Value().startTime);
         ESP_LOGI(TAG, "Forecast slots: %d", mForecast.Value().slots.size());
-        //ESP_LOGI(TAG, "Slot[0] default duration: %lu", mForecast.Value().slots[0].defaultDuration);
     }
 
     ESP_LOGI(TAG, "Current Free Memory\t%d\t\t%d", heap_caps_get_free_size(MALLOC_CAP_8BIT) - heap_caps_get_free_size(MALLOC_CAP_SPIRAM), heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
@@ -408,7 +410,6 @@ CHIP_ERROR DeviceEnergyManagementDelegate::SetForecast(const chip::app::DataMode
     {
         ESP_LOGI(TAG, "Forecast start time: %lu", forecast.Value().startTime);
         ESP_LOGI(TAG, "Forecast slots: %d", forecast.Value().slots.size());
-        //ESP_LOGI(TAG, "Slot[0] default duration: %lu", mForecast.Value().slots[0].defaultDuration);
     }
 
     mForecast = forecast;

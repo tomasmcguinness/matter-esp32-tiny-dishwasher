@@ -138,15 +138,14 @@ esp_err_t StatusDisplay::Init()
     lv_label_set_text(mYesButtonLabel, "Yes");
     lv_obj_set_width(mYesButtonLabel, mDisplayHandle->driver->hor_res);
     lv_obj_add_flag(mYesButtonLabel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_align(mYesButtonLabel, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    lv_obj_set_style_text_align(mYesButtonLabel, LV_TEXT_ALIGN_RIGHT, 0);
 
     mNoButtonLabel = lv_label_create(scr);
 
     lv_label_set_text(mNoButtonLabel, "No");
     lv_obj_set_width(mNoButtonLabel, mDisplayHandle->driver->hor_res);
-    lv_obj_add_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_align(mNoButtonLabel, LV_ALIGN_BOTTOM_LEFT, 0, 0);    
-    lv_obj_set_style_text_align(mNoButtonLabel, LV_TEXT_ALIGN_RIGHT, 0);
+    lv_obj_add_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);    
+    lv_obj_set_style_text_align(mNoButtonLabel, LV_TEXT_ALIGN_LEFT, 0);
 
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 

@@ -128,6 +128,11 @@ static esp_err_t app_attribute_update_cb(callback_type_t type, uint16_t endpoint
     return ESP_OK;
 }
 
+static void esp_sntp_time_cb(struct timeval *tv) 
+{
+    ESP_LOGI(TAG, "TIME SET!");
+}
+
 extern "C" void app_main()
 {
     esp_err_t err = ESP_OK;
@@ -218,6 +223,7 @@ extern "C" void app_main()
 #endif
 
     esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("2.pool.ntp.org");
+    config.sync_cb = esp_sntp_time_cb;
     esp_netif_sntp_init(&config);
 
     /* Matter start */

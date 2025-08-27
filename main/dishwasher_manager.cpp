@@ -61,7 +61,8 @@ void DishwasherManager::HandleOnOffClicked()
 
 void DishwasherManager::HandleStartClicked()
 {
-    if(!mIsPoweredOn) {
+    if (!mIsPoweredOn)
+    {
         ESP_LOGI(TAG, "Dishwasher is off, cannot handle start");
         return;
     }
@@ -148,6 +149,7 @@ chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10
 chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
 
 uint32_t mCurrentForecastId = 0;
+uint32_t mForecastStartTime = 0;
 
 void DishwasherManager::StartProgram()
 {
@@ -182,12 +184,14 @@ void DishwasherManager::StartProgram()
     char buf[50];
     tm calendarTime{};
     localtime_r(&unixEpoch, &calendarTime);
-	ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
+    ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
+
+    mForecastStartTime = unixEpoch + 60; // Start in one minute.
 
     sForecastStruct.forecastID = 0;
-    sForecastStruct.startTime = unixEpoch + 60; 
-    //sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(unixEpoch));
-    sForecastStruct.endTime = unixEpoch + 60 + mTimeRemaining;
+    sForecastStruct.startTime = mForecastStartTime;
+    // sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(unixEpoch));
+    sForecastStruct.endTime = mForecastStartTime + mTimeRemaining;
     sForecastStruct.isPausable = false; // We cannot pause any part of this forecast for now.
     sForecastStruct.activeSlotNumber.SetNonNull(0);
 
@@ -264,7 +268,7 @@ void DishwasherManager::StopProgram()
     UpdateCurrentPhase(0);
     UpdateMode(0);
     UpdateOperationState(OperationalStateEnum::kStopped);
-    //ClearForecast();
+    // ClearForecast();
 }
 
 void DishwasherManager::EndProgram()
@@ -354,7 +358,24 @@ void DishwasherManager::UpdateDishwasherDisplay()
         }
     }
 
-    StatusDisplayMgr().UpdateDisplay(state_text, mode_text, status_text);
+    System::Clock::Microseconds64 utcTime;
+    chip::System::SystemClock().GetClock_RealTime(utcTime);
+
+    time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
+
+    int32_t startsIn = 0;
+
+    if (mForecastStartTime > 0)
+    {
+        startsIn = mForecastStartTime - unixEpoch;
+
+        if (startsIn < 0)
+        {
+            startsIn = 0;
+        }
+    }
+
+    StatusDisplayMgr().UpdateDisplay(startsIn, state_text, mode_text, status_text);
 
     if (status_formatted_buffer != NULL)
     {
@@ -449,7 +470,8 @@ static void UpdateDishwasherCurrentModeWorkHandler(intptr_t context)
 
 void DishwasherManager::SelectNextMode()
 {
-    if(!mIsPoweredOn) {
+    if (!mIsPoweredOn)
+    {
         ESP_LOGI(TAG, "Dishwasher is off, cannot change mode");
         return;
     }
@@ -478,7 +500,8 @@ void DishwasherManager::SelectNextMode()
 
 void DishwasherManager::SelectPreviousMode()
 {
-    if(!mIsPoweredOn) {
+    if (!mIsPoweredOn)
+    {
         ESP_LOGI(TAG, "Dishwasher is off, cannot change mode");
         return;
     }

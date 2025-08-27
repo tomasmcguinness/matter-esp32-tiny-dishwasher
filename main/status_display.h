@@ -5,6 +5,8 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_vendor.h"
 
+#include <inttypes.h>
+
 enum State {
   STOPPED,
   RUNNING,
@@ -19,7 +21,7 @@ public:
     void TurnOn();
     void TurnOff();
 
-    void UpdateDisplay(const char *state_text, const char *mode_text, const char *status_text);
+    void UpdateDisplay(int32_t startsIn, const char *state_text, const char *mode_text, const char *status_text);
 
     void ShowResetOptions();
     void HideResetOptions();
@@ -36,6 +38,7 @@ private:
     lv_obj_t *mResetMessageLabel;
     lv_obj_t *mYesButtonLabel;
     lv_obj_t *mNoButtonLabel;
+    lv_obj_t *mStartsInLabel;
 };
 
 inline StatusDisplay & StatusDisplayMgr(void)

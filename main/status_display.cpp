@@ -145,10 +145,18 @@ esp_err_t StatusDisplay::Init()
 
     lv_label_set_text(mNoButtonLabel, "No");
     lv_obj_set_width(mNoButtonLabel, mDisplayHandle->driver->hor_res);
-    lv_obj_add_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);    
+    lv_obj_add_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_style_text_align(mNoButtonLabel, LV_TEXT_ALIGN_LEFT, 0);
     lv_obj_align(mNoButtonLabel, LV_ALIGN_BOTTOM_MID, 0, 0);
-    
+
+    mStartsInLabel = lv_label_create(scr);
+
+    lv_label_set_text(mStartsInLabel, "");
+    lv_obj_set_width(mStartsInLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_add_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_text_align(mStartsInLabel, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(mStartsInLabel, LV_ALIGN_CENTER, 0, 0);
+
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
     return ESP_OK;
@@ -166,25 +174,43 @@ void StatusDisplay::TurnOff()
     esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
-void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text, const char *status_text)
+void StatusDisplay::UpdateDisplay(int32_t startsIn , const char *state_text, const char *mode_text, const char *status_text)
 {
-    ESP_LOGI(TAG, "Updating the display");
+    ESP_LOGI(TAG, "Updating the display: There is a %lus delay.", startsIn);
 
-    ESP_LOGI(TAG, "state_text: [%s]", state_text);
-    ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
-    ESP_LOGI(TAG, "status_text: [%s]", status_text);
+    if (startsIn == 0)
+    {
+        ESP_LOGI(TAG, "state_text: [%s]", state_text);
+        ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
+        ESP_LOGI(TAG, "status_text: [%s]", status_text);
 
-    lv_label_set_text(mStateLabel, state_text);
-    lv_label_set_text(mModeLabel, mode_text);
-    lv_label_set_text(mStatusLabel, status_text);
+        lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_add_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+
+        lv_label_set_text(mStateLabel, state_text);
+        lv_label_set_text(mModeLabel, mode_text);
+        lv_label_set_text(mStatusLabel, status_text);
+    }
+    else
+    {
+        lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+
+        char *starts_in_formatted_buffer = (char *)malloc(128);
+        snprintf(starts_in_formatted_buffer, 128, "Starting in %lus", startsIn);
+
+        lv_label_set_text(mStartsInLabel, starts_in_formatted_buffer);
+    }
 }
 
-// void StatusDisplay::ShowCountdown(uint32_t seconds) {
-
-// }
-
-void StatusDisplay::ShowResetOptions() {
-
+void StatusDisplay::ShowResetOptions()
+{
     ESP_LOGI(TAG, "Show reset options");
 
     lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
@@ -196,7 +222,8 @@ void StatusDisplay::ShowResetOptions() {
     lv_obj_clear_flag(mNoButtonLabel, LV_OBJ_FLAG_HIDDEN);
 }
 
-void StatusDisplay::HideResetOptions() {
+void StatusDisplay::HideResetOptions()
+{
 
     ESP_LOGI(TAG, "Hide reset options");
 

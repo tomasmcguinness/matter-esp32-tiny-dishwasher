@@ -179,6 +179,10 @@ void StatusDisplay::UpdateDisplay(const char *state_text, const char *mode_text,
     lv_label_set_text(mStatusLabel, status_text);
 }
 
+// void StatusDisplay::ShowCountdown(uint32_t seconds) {
+
+// }
+
 void StatusDisplay::ShowResetOptions() {
 
     ESP_LOGI(TAG, "Show reset options");

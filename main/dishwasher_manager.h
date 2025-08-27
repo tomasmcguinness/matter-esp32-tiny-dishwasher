@@ -43,6 +43,7 @@ public:
     void ProgressProgram();
 
     void SetForecast();
+    void ClearForecast();
     void AdjustStartTime(uint32_t new_start_time);
 
 private:

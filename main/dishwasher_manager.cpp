@@ -61,6 +61,11 @@ void DishwasherManager::HandleOnOffClicked()
 
 void DishwasherManager::HandleStartClicked()
 {
+    if(!mIsPoweredOn) {
+        ESP_LOGI(TAG, "Dishwasher is off, cannot handle start");
+        return;
+    }
+
     if (mIsShowingReset)
     {
         esp_matter::factory_reset();
@@ -146,8 +151,11 @@ uint32_t mCurrentForecastId = 0;
 
 void DishwasherManager::StartProgram()
 {
+    // 30 minutes in seconds = 1800
+    // 60 minutes in seconds = 3600
+    // 90 minutes in seconds = 5400
+    mTimeRemaining = 1800 + (mMode * 1800);
     mPhase = 0;
-    mTimeRemaining = 90;
 
     UpdateCurrentPhase(mPhase);
     UpdateOperationState(OperationalStateEnum::kRunning);
@@ -161,6 +169,8 @@ void DishwasherManager::StartProgram()
     gettimeofday(&tv_now, NULL);
     uint32_t matterEpoch = tv_now.tv_sec;
 
+    // Get the current time the CHIP way...
+    //
     System::Clock::Microseconds64 utcTime;
     chip::System::SystemClock().GetClock_RealTime(utcTime);
 
@@ -175,17 +185,17 @@ void DishwasherManager::StartProgram()
 	ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
 
     sForecastStruct.forecastID = 0;
-    sForecastStruct.startTime = matterEpoch + 30; // Start in 30 seconds
-    sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(matterEpoch));
-    sForecastStruct.endTime = matterEpoch + 60 + mTimeRemaining;
+    sForecastStruct.startTime = unixEpoch + 60; 
+    //sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(unixEpoch));
+    sForecastStruct.endTime = unixEpoch + 60 + mTimeRemaining;
     sForecastStruct.isPausable = false; // We cannot pause any part of this forecast for now.
     sForecastStruct.activeSlotNumber.SetNonNull(0);
 
     int32_t slot_count = 1;
 
-    sSlots[0].minDuration = 10;
-    sSlots[0].maxDuration = 20;
-    sSlots[0].defaultDuration = 15;
+    sSlots[0].minDuration = 1800;
+    sSlots[0].maxDuration = 1800;
+    sSlots[0].defaultDuration = 1800;
 
     // slots[0].elapsedSlotTime = 0;
     // slots[0].remainingSlotTime = 0;
@@ -200,30 +210,26 @@ void DishwasherManager::StartProgram()
 
     if (mMode >= 1)
     {
-        sSlots[1].minDuration = 10;
-        sSlots[1].maxDuration = 20;
-        sSlots[1].defaultDuration = 15;
+        sSlots[1].minDuration = 30 * 60;
+        sSlots[1].maxDuration = 30 * 60;
+        sSlots[1].defaultDuration = 30 * 60;
         sSlots[1].nominalPower.SetValue(3000000);
         sSlots[1].minPower.SetValue(3000000);
         sSlots[1].maxPower.SetValue(3000000);
 
         slot_count = 2;
-
-        mTimeRemaining = 60;
     }
 
     if (mMode >= 2)
     {
-        sSlots[2].minDuration = 10;
-        sSlots[2].maxDuration = 20;
-        sSlots[2].defaultDuration = 15;
+        sSlots[2].minDuration = 30 * 60;
+        sSlots[2].maxDuration = 30 * 60;
+        sSlots[2].defaultDuration = 30 * 60;
         sSlots[2].nominalPower.SetValue(3000000);
         sSlots[2].minPower.SetValue(3000000);
         sSlots[2].maxPower.SetValue(3000000);
 
         slot_count = 3;
-
-        mTimeRemaining = 90;
     }
 
     sForecastStruct.slots = DataModel::List<DeviceEnergyManagement::Structs::SlotStruct::Type>(sSlots, slot_count);
@@ -236,7 +242,7 @@ void DishwasherManager::AdjustStartTime(uint32_t new_start_time)
     // TODO If the program has started, we can't adjust the start time.
     //
     sForecastStruct.startTime = new_start_time;
-    sForecastStruct.endTime = new_start_time + (mMode * 30) + 30;
+    sForecastStruct.endTime = new_start_time + ((30 + (mMode * 30)) * 60);
     sForecastStruct.forecastUpdateReason = DeviceEnergyManagement::ForecastUpdateReasonEnum::kGridOptimization;
 
     SetForecast();
@@ -258,6 +264,7 @@ void DishwasherManager::StopProgram()
     UpdateCurrentPhase(0);
     UpdateMode(0);
     UpdateOperationState(OperationalStateEnum::kStopped);
+    //ClearForecast();
 }
 
 void DishwasherManager::EndProgram()
@@ -442,6 +449,11 @@ static void UpdateDishwasherCurrentModeWorkHandler(intptr_t context)
 
 void DishwasherManager::SelectNextMode()
 {
+    if(!mIsPoweredOn) {
+        ESP_LOGI(TAG, "Dishwasher is off, cannot change mode");
+        return;
+    }
+
     ESP_LOGI(TAG, "SelectNextMode called!");
 
     if (mState != OperationalStateEnum::kStopped)
@@ -466,6 +478,11 @@ void DishwasherManager::SelectNextMode()
 
 void DishwasherManager::SelectPreviousMode()
 {
+    if(!mIsPoweredOn) {
+        ESP_LOGI(TAG, "Dishwasher is off, cannot change mode");
+        return;
+    }
+
     uint8_t current_mode = DishwasherMode::GetInstance()->GetCurrentMode();
 
     ESP_LOGI(TAG, "Current Mode: %d", current_mode);
@@ -500,5 +517,14 @@ void DishwasherManager::SetForecast()
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+}
+
+void DishwasherManager::ClearForecast()
+{
+    ESP_LOGI(TAG, "DishwasherManager::ClearForecast()");
+
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    device_energy_management_delegate.SetForecast(DataModel::NullNullable);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }

@@ -289,7 +289,7 @@ void StatusDisplay::UpdateDisplay(bool showingMenu, bool hasOptedIn, bool isProg
             else
             {
                 lv_obj_add_flag(mMenuButtonLabel, LV_OBJ_FLAG_HIDDEN);
-                lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
 
                 lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);

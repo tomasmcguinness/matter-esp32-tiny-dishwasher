@@ -21,7 +21,7 @@ public:
     void TurnOn();
     void TurnOff();
 
-    void UpdateDisplay(int32_t startsIn, const char *state_text, const char *mode_text, const char *status_text);
+    void UpdateDisplay(bool showingMenu, bool hasOptedIn, bool programSelected, int32_t startsIn, const char *state_text, const char *mode_text, const char *status_text);
 
     void ShowResetOptions();
     void HideResetOptions();
@@ -39,6 +39,10 @@ private:
     lv_obj_t *mYesButtonLabel;
     lv_obj_t *mNoButtonLabel;
     lv_obj_t *mStartsInLabel;
+    lv_obj_t *mMenuButtonLabel;
+    lv_obj_t *mMenuHeaderLabel;
+    lv_obj_t *mEnergyManagementOptOutLabel;
+    lv_obj_t *mEnergyManagementOptInLabel;
 };
 
 inline StatusDisplay & StatusDisplayMgr(void)

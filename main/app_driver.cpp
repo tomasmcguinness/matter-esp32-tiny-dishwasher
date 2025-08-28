@@ -364,7 +364,13 @@ int64_t DeviceEnergyManagementDelegate::GetAbsMaxPower()
 
 OptOutStateEnum DeviceEnergyManagementDelegate::GetOptOutState()
 {
-    return OptOutStateEnum::kNoOptOut;
+    return mOptOutState;
+}
+
+void DeviceEnergyManagementDelegate::SetOptOutState(OptOutStateEnum state)
+{
+    mOptOutState = state;
+    MatterReportingAttributeChangeCallback(DeviceEnergyManagementDelegate::mEndpointId, DeviceEnergyManagement::Id, DeviceEnergyManagement::Attributes::OptOutState::Id);
 }
 
 CHIP_ERROR DeviceEnergyManagementDelegate::SetESAState(ESAStateEnum newValue)
@@ -461,6 +467,12 @@ static void start_button_single_click_cb(void *args, void *user_data)
     DishwasherMgr().HandleStartClicked();
 }
 
+static void rotary_button_single_click_cb(void *args, void *user_data)
+{
+    ESP_LOGI(TAG, "Rotary Clicked");
+    DishwasherMgr().HandleWheelClicked();
+}
+
 esp_err_t app_driver_init()
 {
     esp_err_t err = ESP_OK;
@@ -487,6 +499,17 @@ esp_err_t app_driver_init()
     button_handle_t start_handle = iot_button_create(&start_config);
 
     ESP_ERROR_CHECK(iot_button_register_cb(start_handle, BUTTON_SINGLE_CLICK, start_button_single_click_cb, NULL));
+
+    button_config_t rotary_config;
+    memset(&rotary_config, 0, sizeof(button_config_t));
+
+    rotary_config.type = BUTTON_TYPE_GPIO;
+    rotary_config.gpio_button_config.gpio_num = GPIO_NUM_2;
+    rotary_config.gpio_button_config.active_level = 0;
+
+    button_handle_t rotary_handle = iot_button_create(&rotary_config);
+
+    ESP_ERROR_CHECK(iot_button_register_cb(rotary_handle, BUTTON_SINGLE_CLICK, rotary_button_single_click_cb, NULL));
 
     return err;
 }

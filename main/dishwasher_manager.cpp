@@ -80,7 +80,7 @@ void DishwasherManager::HandleStartClicked()
 
 uint32_t DishwasherManager::GetTimeRemaining()
 {
-    return mTimeRemaining;
+    return mRunningTimeRemaining;
 }
 
 void DishwasherManager::TogglePower()
@@ -148,15 +148,13 @@ void DishwasherManager::ToggleProgram()
 chip::app::Clusters::DeviceEnergyManagement::Structs::SlotStruct::Type sSlots[10];
 chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sForecastStruct;
 
-uint32_t mCurrentForecastId = 0;
-uint32_t mForecastStartTime = 0;
-
 void DishwasherManager::StartProgram()
 {
+    mIsProgramSelected = true;
     // 30 minutes in seconds = 1800
     // 60 minutes in seconds = 3600
     // 90 minutes in seconds = 5400
-    mTimeRemaining = 1800 + (mMode * 1800);
+    mRunningTimeRemaining = 1800 + (mMode * 1800);
     mPhase = 0;
 
     UpdateCurrentPhase(mPhase);
@@ -186,12 +184,12 @@ void DishwasherManager::StartProgram()
     localtime_r(&unixEpoch, &calendarTime);
     ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
 
-    mForecastStartTime = unixEpoch + 60; // Start in one minute.
+    mDelayedStartTimeRemaining = unixEpoch + 60; // Start in one minute.
 
     sForecastStruct.forecastID = 0;
-    sForecastStruct.startTime = mForecastStartTime;
+    sForecastStruct.startTime = mDelayedStartTimeRemaining;
     // sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(unixEpoch));
-    sForecastStruct.endTime = mForecastStartTime + mTimeRemaining;
+    sForecastStruct.endTime = mDelayedStartTimeRemaining + mRunningTimeRemaining;
     sForecastStruct.isPausable = false; // We cannot pause any part of this forecast for now.
     sForecastStruct.activeSlotNumber.SetNonNull(0);
 
@@ -264,11 +262,11 @@ void DishwasherManager::ResumeProgram()
 
 void DishwasherManager::StopProgram()
 {
-    mTimeRemaining = 0;
+    mDelayedStartTimeRemaining = 0;
+    mRunningTimeRemaining = 0;
     UpdateCurrentPhase(0);
     UpdateMode(0);
     UpdateOperationState(OperationalStateEnum::kStopped);
-    // ClearForecast();
 }
 
 void DishwasherManager::EndProgram()
@@ -315,13 +313,13 @@ void DishwasherManager::UpdateDishwasherDisplay()
         break;
     }
 
-    ESP_LOGI(TAG, "Time Remaining: %lu", mTimeRemaining);
+    ESP_LOGI(TAG, "Time Remaining: %lu", mRunningTimeRemaining);
 
     char time_buffer[30] = "";
 
-    if (mTimeRemaining > 0)
+    if (mRunningTimeRemaining > 0)
     {
-        sprintf(time_buffer, "%lus", mTimeRemaining);
+        sprintf(time_buffer, "%lus", mRunningTimeRemaining);
     }
 
     char mode_buffer[64];
@@ -361,21 +359,7 @@ void DishwasherManager::UpdateDishwasherDisplay()
     System::Clock::Microseconds64 utcTime;
     chip::System::SystemClock().GetClock_RealTime(utcTime);
 
-    time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
-
-    int32_t startsIn = 0;
-
-    if (mForecastStartTime > 0)
-    {
-        startsIn = mForecastStartTime - unixEpoch;
-
-        if (startsIn < 0)
-        {
-            startsIn = 0;
-        }
-    }
-
-    StatusDisplayMgr().UpdateDisplay(startsIn, state_text, mode_text, status_text);
+    StatusDisplayMgr().UpdateDisplay(mIsShowingMenu, mOptedIntoEnergyManagement, mIsProgramSelected, mDelayedStartTimeRemaining, state_text, mode_text, status_text);
 
     if (status_formatted_buffer != NULL)
     {
@@ -387,33 +371,40 @@ void DishwasherManager::ProgressProgram()
 {
     if (mState == OperationalStateEnum::kRunning)
     {
-        mTimeRemaining--;
+        if (mDelayedStartTimeRemaining <= 0)
+        {
+            mRunningTimeRemaining--;
 
-        uint8_t current_phase = 0;
+            uint8_t current_phase = 0;
 
-        if (mTimeRemaining <= 0)
-        {
-            current_phase = 0;
-            EndProgram();
-        }
-        else if (mTimeRemaining < 5)
-        {
-            current_phase = 4;
-        }
-        else if (mTimeRemaining < 10)
-        {
-            current_phase = 3;
-        }
-        else if (mTimeRemaining < 15)
-        {
-            current_phase = 2;
-        }
-        else if (mTimeRemaining < 20)
-        {
-            current_phase = 1;
-        }
+            if (mRunningTimeRemaining <= 0)
+            {
+                current_phase = 0;
+                EndProgram();
+            }
+            else if (mRunningTimeRemaining < 5)
+            {
+                current_phase = 4;
+            }
+            else if (mRunningTimeRemaining < 10)
+            {
+                current_phase = 3;
+            }
+            else if (mRunningTimeRemaining < 15)
+            {
+                current_phase = 2;
+            }
+            else if (mRunningTimeRemaining < 20)
+            {
+                current_phase = 1;
+            }
 
-        UpdateCurrentPhase(current_phase);
+            UpdateCurrentPhase(current_phase);
+        }
+        else
+        {
+            mDelayedStartTimeRemaining--;
+        }
     }
 }
 
@@ -466,6 +457,81 @@ static void UpdateDishwasherCurrentModeWorkHandler(intptr_t context)
     uint8_t mode = (uint8_t)context;
     DishwasherMode::GetInstance()->UpdateCurrentMode(mode);
     DishwasherMgr().UpdateDishwasherDisplay();
+}
+
+void DishwasherManager::SelectNext()
+{
+    if (!mIsPoweredOn)
+    {
+        ESP_LOGI(TAG, "Dishwasher is off, cannot handle start");
+        return;
+    }
+
+    if (mIsShowingMenu)
+    {
+        mOptedIntoEnergyManagement = !mOptedIntoEnergyManagement;
+
+        chip::DeviceLayer::PlatformMgr().LockChipStack();
+
+        if (mOptedIntoEnergyManagement)
+        {
+            device_energy_management_delegate.SetOptOutState(OptOutStateEnum::kNoOptOut);
+        }
+        else
+        {
+            device_energy_management_delegate.SetOptOutState(OptOutStateEnum::kOptOut);
+        }
+
+        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+
+        ESP_LOGI(TAG, "Opted into energy management: %d", mOptedIntoEnergyManagement);
+        UpdateDishwasherDisplay();
+    }
+}
+
+void DishwasherManager::SelectPrevious()
+{
+    if (!mIsPoweredOn)
+    {
+        ESP_LOGI(TAG, "Dishwasher is off, cannot handle start");
+        return;
+    }
+
+    if (mIsShowingMenu)
+    {
+        mOptedIntoEnergyManagement = !mOptedIntoEnergyManagement;
+
+        chip::DeviceLayer::PlatformMgr().LockChipStack();
+
+        if (mOptedIntoEnergyManagement)
+        {
+            device_energy_management_delegate.SetOptOutState(OptOutStateEnum::kNoOptOut);
+        }
+        else
+        {
+            device_energy_management_delegate.SetOptOutState(OptOutStateEnum::kOptOut);
+        }
+
+        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+
+        ESP_LOGI(TAG, "Opted into energy management: %d", mOptedIntoEnergyManagement);
+        UpdateDishwasherDisplay();
+    }
+}
+
+void DishwasherManager::HandleWheelClicked()
+{
+    if (!mIsPoweredOn)
+    {
+        ESP_LOGI(TAG, "Dishwasher is off, cannot handle wheel click");
+        return;
+    }
+
+    if (mState == OperationalStateEnum::kStopped)
+    {
+        mIsShowingMenu = !mIsShowingMenu;
+        UpdateDishwasherDisplay();
+    }
 }
 
 void DishwasherManager::SelectNextMode()

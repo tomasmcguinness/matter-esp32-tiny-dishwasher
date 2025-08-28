@@ -54,11 +54,11 @@ static void pulse_counter_monitor_task(void *arg)
 
                 if (pulse_difference < 0)
                 {
-                    DishwasherMgr().SelectNextMode();
+                    DishwasherMgr().SelectNext();//.SelectNextMode();
                 }
                 else
                 {
-                    DishwasherMgr().SelectPreviousMode();
+                    DishwasherMgr().SelectPrevious();//.SelectPreviousMode();
                 }
             }
         }

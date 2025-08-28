@@ -23,11 +23,16 @@ public:
     void HandleStartClicked();
     void PresentReset();
 
+    void SelectNext();
+    void SelectPrevious();
+    void HandleWheelClicked();
+
     OperationalStateEnum GetOperationalState();
 
     uint32_t GetTimeRemaining();
 
     void UpdateMode(uint8_t mode);
+
     void SelectNextMode();
     void SelectPreviousMode();
 
@@ -47,7 +52,7 @@ public:
     void AdjustStartTime(uint32_t new_start_time);
 
 private:
-    friend DishwasherManager & DishwasherMgr(void);
+    friend DishwasherManager &DishwasherMgr(void);
 
     static DishwasherManager sDishwasher;
 
@@ -55,13 +60,22 @@ private:
 
     OperationalState::OperationalStateEnum mState;
     uint8_t mMode;
-    uint8_t mPhase; 
-    uint32_t mTimeRemaining;
+    uint8_t mPhase;
+    uint32_t mRunningTimeRemaining;
+    uint32_t mDelayedStartTimeRemaining;
+    bool mOptedIntoEnergyManagement = false;
+
+    uint32_t mCurrentForecastId = 0;
+    uint32_t mForecastStartTime = 0;
+
+    bool mIsShowingMenu = false;
+    bool mIsProgramSelected = false;
+
     bool mIsPoweredOn = false;
     bool mIsShowingReset = false;
 };
 
-inline DishwasherManager & DishwasherMgr(void)
+inline DishwasherManager &DishwasherMgr(void)
 {
     return DishwasherManager::sDishwasher;
 }

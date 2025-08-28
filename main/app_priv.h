@@ -213,6 +213,7 @@ namespace chip
                     int64_t GetAbsMinPower();
                     int64_t GetAbsMaxPower();
                     OptOutStateEnum GetOptOutState();
+                    void SetOptOutState(OptOutStateEnum state);
 
                     CHIP_ERROR SetESAState(ESAStateEnum newValue);
 
@@ -226,6 +227,7 @@ namespace chip
                 private:
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::PowerAdjustCapabilityStruct::Type> mPowerAdjustCapabilityStruct;
                     chip::app::DataModel::Nullable<DeviceEnergyManagement::Structs::ForecastStruct::Type> mForecast;
+                    OptOutStateEnum mOptOutState = OptOutStateEnum::kOptOut;
                 };
 
                 void Shutdown();

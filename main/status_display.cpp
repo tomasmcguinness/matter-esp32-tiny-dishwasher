@@ -107,13 +107,13 @@ esp_err_t StatusDisplay::Init()
     lv_obj_t *scr = lv_scr_act();
 
     mModeLabel = lv_label_create(scr);
-    lv_label_set_text(mModeLabel, "");
+    lv_label_set_text(mModeLabel, "STOPPED"); // TODO Get this default from the DishwasherManager
     lv_obj_set_width(mModeLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mModeLabel, LV_ALIGN_LEFT_MID, 0, 0);
 
     mStateLabel = lv_label_create(scr);
 
-    lv_label_set_text(mStateLabel, "");
+    lv_label_set_text(mStateLabel, "Eco 50°"); // TODO Get this default from the DishwasherManager
     lv_obj_set_width(mStateLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mStateLabel, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_bg_color(mStateLabel, lv_color_hex(0x000000), LV_PART_MAIN);
@@ -157,6 +157,38 @@ esp_err_t StatusDisplay::Init()
     lv_obj_set_style_text_align(mStartsInLabel, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(mStartsInLabel, LV_ALIGN_CENTER, 0, 0);
 
+    mMenuButtonLabel = lv_label_create(scr);
+
+    lv_label_set_text(mMenuButtonLabel, "MENU");
+    lv_obj_set_width(mMenuButtonLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_set_style_text_align(mMenuButtonLabel, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(mMenuButtonLabel, LV_ALIGN_BOTTOM_MID, 0, 0);
+
+    mMenuHeaderLabel = lv_label_create(scr);
+
+    lv_label_set_text(mMenuHeaderLabel, "Energy Mgr");
+    lv_obj_set_width(mMenuHeaderLabel, mDisplayHandle->driver->hor_res);
+    lv_obj_add_flag(mMenuHeaderLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_text_align(mMenuHeaderLabel, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_align(mMenuHeaderLabel, LV_ALIGN_TOP_LEFT, 0, 0);
+
+    mEnergyManagementOptOutLabel = lv_label_create(scr);
+
+    lv_label_set_text(mEnergyManagementOptOutLabel, "Opt Out");
+    lv_obj_add_flag(mEnergyManagementOptOutLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_align(mEnergyManagementOptOutLabel, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_set_style_text_align(mEnergyManagementOptOutLabel, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_set_style_bg_color(mEnergyManagementOptOutLabel, lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(mEnergyManagementOptOutLabel, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(mEnergyManagementOptOutLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+
+    mEnergyManagementOptInLabel = lv_label_create(scr);
+
+    lv_label_set_text(mEnergyManagementOptInLabel, "Opt In");
+    lv_obj_add_flag(mEnergyManagementOptInLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_align(mEnergyManagementOptInLabel, LV_ALIGN_RIGHT_MID, 0, 0);
+    lv_obj_set_style_text_align(mEnergyManagementOptInLabel, LV_TEXT_ALIGN_RIGHT, 0);
+
     ESP_LOGI(TAG, "StatusDisplay::Init() finished");
 
     return ESP_OK;
@@ -174,38 +206,84 @@ void StatusDisplay::TurnOff()
     esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
-void StatusDisplay::UpdateDisplay(int32_t startsIn , const char *state_text, const char *mode_text, const char *status_text)
+void StatusDisplay::UpdateDisplay(bool showingMenu, bool hasOptedIn, bool isProgramRunning, int32_t startsIn, const char *state_text, const char *mode_text, const char *status_text)
 {
-    ESP_LOGI(TAG, "Updating the display: There is a %lus delay.", startsIn);
+    ESP_LOGI(TAG, "Updating the display");
 
-    if (startsIn == 0)
+    if (showingMenu)
     {
-        ESP_LOGI(TAG, "state_text: [%s]", state_text);
-        ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
-        ESP_LOGI(TAG, "status_text: [%s]", status_text);
+        ESP_LOGI(TAG, "Showing the menu: hasOptedIn=%d", hasOptedIn);
 
-        lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text(mMenuButtonLabel, "EXIT");
+        lv_obj_clear_flag(mMenuHeaderLabel, LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_add_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+        if (hasOptedIn)
+        {
+            // Remove background from Opt Out
+            lv_obj_set_style_bg_color(mEnergyManagementOptOutLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(mEnergyManagementOptOutLabel, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_text_color(mEnergyManagementOptOutLabel, lv_color_hex(0x000000), LV_PART_MAIN);
 
-        lv_label_set_text(mStateLabel, state_text);
-        lv_label_set_text(mModeLabel, mode_text);
-        lv_label_set_text(mStatusLabel, status_text);
-    }
-    else
-    {
+            lv_obj_set_style_bg_color(mEnergyManagementOptInLabel, lv_color_hex(0x000000), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(mEnergyManagementOptInLabel, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_text_color(mEnergyManagementOptInLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+        }
+        else
+        {
+            // Remove background from Opt In
+            lv_obj_set_style_bg_color(mEnergyManagementOptInLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(mEnergyManagementOptInLabel, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_text_color(mEnergyManagementOptInLabel, lv_color_hex(0x000000), LV_PART_MAIN);
+
+            lv_obj_set_style_bg_color(mEnergyManagementOptOutLabel, lv_color_hex(0x000000), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(mEnergyManagementOptOutLabel, LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_text_color(mEnergyManagementOptOutLabel, lv_color_hex(0xffffff), LV_PART_MAIN);
+        }
+
+        lv_obj_clear_flag(mEnergyManagementOptOutLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(mEnergyManagementOptInLabel, LV_OBJ_FLAG_HIDDEN);
+
         lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+    }
+    else
+    {
+        lv_label_set_text(mMenuButtonLabel, "MENU");
+        lv_obj_add_flag(mMenuHeaderLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(mEnergyManagementOptOutLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(mEnergyManagementOptInLabel, LV_OBJ_FLAG_HIDDEN);
 
-        lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+        if (isProgramRunning)
+        {
+            lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
 
-        char *starts_in_formatted_buffer = (char *)malloc(128);
-        snprintf(starts_in_formatted_buffer, 128, "Starting in %lus", startsIn);
+            lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
 
-        lv_label_set_text(mStartsInLabel, starts_in_formatted_buffer);
+            char *starts_in_formatted_buffer = (char *)malloc(128);
+            snprintf(starts_in_formatted_buffer, 128, "Starting in %lus", startsIn);
+
+            lv_label_set_text(mStartsInLabel, starts_in_formatted_buffer);
+        }
+        else
+        {
+            ESP_LOGI(TAG, "state_text: [%s]", state_text);
+            ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
+            ESP_LOGI(TAG, "status_text: [%s]", status_text);
+
+            lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+
+            lv_obj_add_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+
+            lv_label_set_text(mStateLabel, state_text);
+            lv_label_set_text(mModeLabel, mode_text);
+            lv_label_set_text(mStatusLabel, status_text);
+        }
     }
 }
 

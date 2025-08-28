@@ -107,13 +107,13 @@ esp_err_t StatusDisplay::Init()
     lv_obj_t *scr = lv_scr_act();
 
     mModeLabel = lv_label_create(scr);
-    lv_label_set_text(mModeLabel, "STOPPED"); // TODO Get this default from the DishwasherManager
+    lv_label_set_text(mModeLabel, "Eco 50°"); // TODO Get this default from the DishwasherManager
     lv_obj_set_width(mModeLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mModeLabel, LV_ALIGN_LEFT_MID, 0, 0);
 
     mStateLabel = lv_label_create(scr);
 
-    lv_label_set_text(mStateLabel, "Eco 50°"); // TODO Get this default from the DishwasherManager
+    lv_label_set_text(mStateLabel, "STOPPED"); // TODO Get this default from the DishwasherManager
     lv_obj_set_width(mStateLabel, mDisplayHandle->driver->hor_res);
     lv_obj_align(mStateLabel, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_bg_color(mStateLabel, lv_color_hex(0x000000), LV_PART_MAIN);

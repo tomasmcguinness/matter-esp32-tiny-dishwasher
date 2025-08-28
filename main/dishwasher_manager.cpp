@@ -166,9 +166,10 @@ void DishwasherManager::StartProgram()
 
     // Get the current time.
     //
-    struct timeval tv_now;
-    gettimeofday(&tv_now, NULL);
-    uint32_t matterEpoch = tv_now.tv_sec;
+    // struct timeval tv_now;
+    // gettimeofday(&tv_now, NULL);
+    // uint32_t matterEpoch = tv_now.tv_sec;
+    // ESP_LOGI(TAG, "Current time: %lu", matterEpoch);
 
     // Get the current time the CHIP way...
     //
@@ -177,13 +178,12 @@ void DishwasherManager::StartProgram()
 
     time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
 
-    ESP_LOGI(TAG, "Current time: %lu", matterEpoch);
     ESP_LOGI(TAG, "Matter time: %llu", unixEpoch);
 
-    char buf[50];
-    tm calendarTime{};
-    localtime_r(&unixEpoch, &calendarTime);
-    ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
+    // char buf[50];
+    // tm calendarTime{};
+    // localtime_r(&unixEpoch, &calendarTime);
+    // ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
 
     if (mOptedIntoEnergyManagement)
     {
@@ -255,6 +255,17 @@ void DishwasherManager::AdjustStartTime(uint32_t new_start_time)
     sForecastStruct.startTime = new_start_time;
     sForecastStruct.endTime = new_start_time + ((30 + (mMode * 30)) * 60);
     sForecastStruct.forecastUpdateReason = DeviceEnergyManagement::ForecastUpdateReasonEnum::kGridOptimization;
+
+    // Update the delay.
+    //
+    System::Clock::Microseconds64 utcTime;
+    chip::System::SystemClock().GetClock_RealTime(utcTime);
+
+    time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
+
+    mDelayedStartTimeRemaining = new_start_time - unixEpoch;
+
+    UpdateDishwasherDisplay();
 
     SetForecast();
 }
@@ -623,36 +634,38 @@ void DishwasherManager::SelectPreviousMode()
     chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateDishwasherCurrentModeWorkHandler, mMode);
 }
 
-// static void UpdateForecastWorkHandler(intptr_t context)
-// {
-//     ESP_LOGI(TAG, "UpdateOperationalStatePhaseWorkHandler()");
-//     uint8_t mode = (uint8_t)context;
-//     DishwasherMode::GetInstance()->UpdateCurrentMode(mode);
-//     DishwasherMgr().UpdateDishwasherDisplay();
-// }
+static void UpdateForecastWorkHandler(intptr_t context)
+{
+    ESP_LOGI(TAG, "UpdateForecastWorkHandler()");
+    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
+}
 
 void DishwasherManager::SetForecast()
 {
     ESP_LOGI(TAG, "DishwasherManager::SetForecast()");
 
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    chip::DeviceLayer::PlatformMgr().ScheduleWork(UpdateForecastWorkHandler, mMode);
+
+    // chip::DeviceLayer::PlatformMgr().LockChipStack();
+    // device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
+    // chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }
 
 void DishwasherManager::ClearForecast()
 {
     ESP_LOGI(TAG, "DishwasherManager::ClearForecast()");
 
-    // sForecastStruct.startTime = 0;
-    // sForecastStruct.endTime   = 0;
-    // sForecastStruct.earliestStartTime.ClearValue();
-    // sForecastStruct.latestEndTime.ClearValue();
-    // sForecastStruct.isPausable = false;
-    // sForecastStruct.activeSlotNumber.SetNull();
-    // sForecastStruct.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>();
+    sForecastStruct.startTime = 0;
+    sForecastStruct.endTime   = 0;
+    sForecastStruct.earliestStartTime.ClearValue();
+    sForecastStruct.latestEndTime.ClearValue();
+    sForecastStruct.isPausable = false;
+    sForecastStruct.activeSlotNumber.SetNull();
+    sForecastStruct.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>();
 
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    // chip::DeviceLayer::PlatformMgr().LockChipStack();
+    // device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
+    // chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+
+    SetForecast();
 }

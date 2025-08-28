@@ -187,19 +187,20 @@ void DishwasherManager::StartProgram()
 
     if (mOptedIntoEnergyManagement)
     {
-        mDelayedStartTimeRemaining = 60; // Start in one minute.
+        mDelayedStartTimeRemaining = 60; // Start in one minute to allow for optimisation
     }
     else
     {
         mDelayedStartTimeRemaining = 0; // Start immediately.
     }
 
-    sForecastStruct.forecastID = 0;
+    sForecastStruct.forecastID = 0; // TODO This should change each time the forecast changes.
     sForecastStruct.startTime = unixEpoch + mDelayedStartTimeRemaining;
-    // sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(unixEpoch));
+    sForecastStruct.earliestStartTime = MakeOptional(unixEpoch);
     sForecastStruct.endTime = unixEpoch + mDelayedStartTimeRemaining + mRunningTimeRemaining;
-    sForecastStruct.isPausable = false; // We cannot pause any part of this forecast for now.
-    sForecastStruct.activeSlotNumber.SetNonNull(0);
+    sForecastStruct.latestEndTime = MakeOptional(unixEpoch + 43200 /* 12 hours */ );
+    sForecastStruct.isPausable = false; // We cannot pause any of the slots in this forecast.
+    sForecastStruct.activeSlotNumber.SetNull(); // TODO Change this accordingly as the program progresses.
 
     int32_t slot_count = 1;
 
@@ -276,6 +277,7 @@ void DishwasherManager::StopProgram()
     UpdateCurrentPhase(0);
     UpdateMode(0);
     UpdateOperationState(OperationalStateEnum::kStopped);
+    ClearForecast();
 }
 
 void DishwasherManager::EndProgram()
@@ -642,7 +644,15 @@ void DishwasherManager::ClearForecast()
 {
     ESP_LOGI(TAG, "DishwasherManager::ClearForecast()");
 
+    // sForecastStruct.startTime = 0;
+    // sForecastStruct.endTime   = 0;
+    // sForecastStruct.earliestStartTime.ClearValue();
+    // sForecastStruct.latestEndTime.ClearValue();
+    // sForecastStruct.isPausable = false;
+    // sForecastStruct.activeSlotNumber.SetNull();
+    // sForecastStruct.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>();
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
-    device_energy_management_delegate.SetForecast(DataModel::NullNullable);
+    device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }

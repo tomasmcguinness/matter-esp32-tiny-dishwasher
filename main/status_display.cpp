@@ -206,9 +206,17 @@ void StatusDisplay::TurnOff()
     esp_lcd_panel_disp_on_off(mPanelHandle, false);
 }
 
-void StatusDisplay::UpdateDisplay(bool showingMenu, bool hasOptedIn, bool isProgramRunning, int32_t startsIn, const char *state_text, const char *mode_text, const char *status_text)
+void StatusDisplay::UpdateDisplay(bool showingMenu, bool hasOptedIn, bool isProgramSelected, int32_t startsIn, const char *state_text, const char *mode_text, const char *status_text)
 {
     ESP_LOGI(TAG, "Updating the display");
+
+    ESP_LOGI(TAG, "showingMenu: [%d]", showingMenu);
+    ESP_LOGI(TAG, "hasOptedIn: [%d]", hasOptedIn);
+    ESP_LOGI(TAG, "isProgramSelected: [%d]", isProgramSelected);
+    ESP_LOGI(TAG, "startsIn: [%lu]", startsIn);
+    ESP_LOGI(TAG, "state_text: [%s]", state_text);
+    ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
+    ESP_LOGI(TAG, "status_text: [%s]", status_text);
 
     if (showingMenu)
     {
@@ -250,30 +258,50 @@ void StatusDisplay::UpdateDisplay(bool showingMenu, bool hasOptedIn, bool isProg
     }
     else
     {
+        // The standard screen (menu closed)
+        //
         lv_label_set_text(mMenuButtonLabel, "MENU");
+        lv_obj_clear_flag(mMenuButtonLabel, LV_OBJ_FLAG_HIDDEN);
+
         lv_obj_add_flag(mMenuHeaderLabel, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(mEnergyManagementOptOutLabel, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(mEnergyManagementOptInLabel, LV_OBJ_FLAG_HIDDEN);
 
-        if (isProgramRunning)
+        if (isProgramSelected)
         {
-            lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+            // If there a delayed start?
+            //
+            if (startsIn > 0)
+            {
+                lv_label_set_text(mMenuButtonLabel, "CANCEL");
+                lv_obj_clear_flag(mMenuButtonLabel, LV_OBJ_FLAG_HIDDEN);
+    
+                lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
 
-            lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+                char *starts_in_formatted_buffer = (char *)malloc(128);
+                snprintf(starts_in_formatted_buffer, 128, "Starting in %lus", startsIn);
 
-            char *starts_in_formatted_buffer = (char *)malloc(128);
-            snprintf(starts_in_formatted_buffer, 128, "Starting in %lus", startsIn);
+                lv_label_set_text(mStartsInLabel, starts_in_formatted_buffer);
+                lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
+            }
+            else
+            {
+                lv_obj_add_flag(mMenuButtonLabel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(mStartsInLabel, LV_OBJ_FLAG_HIDDEN);
 
-            lv_label_set_text(mStartsInLabel, starts_in_formatted_buffer);
+                lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+
+                lv_label_set_text(mStateLabel, state_text);
+                lv_label_set_text(mModeLabel, mode_text);
+                lv_label_set_text(mStatusLabel, status_text);
+            }
         }
         else
         {
-            ESP_LOGI(TAG, "state_text: [%s]", state_text);
-            ESP_LOGI(TAG, "mode_text: [%s]", mode_text);
-            ESP_LOGI(TAG, "status_text: [%s]", status_text);
-
             lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);

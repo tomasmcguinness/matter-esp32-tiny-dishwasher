@@ -151,14 +151,15 @@ chip::app::Clusters::DeviceEnergyManagement::Structs::ForecastStruct::Type sFore
 void DishwasherManager::StartProgram()
 {
     mIsProgramSelected = true;
+
     // 30 minutes in seconds = 1800
     // 60 minutes in seconds = 3600
     // 90 minutes in seconds = 5400
     mRunningTimeRemaining = 1800 + (mMode * 1800);
     mPhase = 0;
 
-    UpdateCurrentPhase(mPhase);
-    UpdateOperationState(OperationalStateEnum::kRunning);
+    // UpdateCurrentPhase(mPhase);
+    // UpdateOperationState(OperationalStateEnum::kRunning);
 
     // Configure the forecast for the selected program.
     //
@@ -184,12 +185,19 @@ void DishwasherManager::StartProgram()
     localtime_r(&unixEpoch, &calendarTime);
     ESP_LOGI(TAG, "The date and time is %s", asctime_r(&calendarTime, buf));
 
-    mDelayedStartTimeRemaining = unixEpoch + 60; // Start in one minute.
+    if (mOptedIntoEnergyManagement)
+    {
+        mDelayedStartTimeRemaining = 60; // Start in one minute.
+    }
+    else
+    {
+        mDelayedStartTimeRemaining = 0; // Start immediately.
+    }
 
     sForecastStruct.forecastID = 0;
-    sForecastStruct.startTime = mDelayedStartTimeRemaining;
+    sForecastStruct.startTime = unixEpoch + mDelayedStartTimeRemaining;
     // sForecastStruct.earliestStartTime = MakeOptional(DataModel::MakeNullable(unixEpoch));
-    sForecastStruct.endTime = mDelayedStartTimeRemaining + mRunningTimeRemaining;
+    sForecastStruct.endTime = unixEpoch + mDelayedStartTimeRemaining + mRunningTimeRemaining;
     sForecastStruct.isPausable = false; // We cannot pause any part of this forecast for now.
     sForecastStruct.activeSlotNumber.SetNonNull(0);
 
@@ -262,6 +270,7 @@ void DishwasherManager::ResumeProgram()
 
 void DishwasherManager::StopProgram()
 {
+    mIsProgramSelected = false;
     mDelayedStartTimeRemaining = 0;
     mRunningTimeRemaining = 0;
     UpdateCurrentPhase(0);
@@ -356,9 +365,6 @@ void DishwasherManager::UpdateDishwasherDisplay()
         }
     }
 
-    System::Clock::Microseconds64 utcTime;
-    chip::System::SystemClock().GetClock_RealTime(utcTime);
-
     StatusDisplayMgr().UpdateDisplay(mIsShowingMenu, mOptedIntoEnergyManagement, mIsProgramSelected, mDelayedStartTimeRemaining, state_text, mode_text, status_text);
 
     if (status_formatted_buffer != NULL)
@@ -369,9 +375,31 @@ void DishwasherManager::UpdateDishwasherDisplay()
 
 void DishwasherManager::ProgressProgram()
 {
-    if (mState == OperationalStateEnum::kRunning)
+    // If there is no program selected, we do nothing.
+    //
+    if (!mIsProgramSelected)
     {
-        if (mDelayedStartTimeRemaining <= 0)
+        return;
+    }
+
+    // We might be on a delayed start, so tick down if required.
+    //
+    if (mDelayedStartTimeRemaining > 0)
+    {
+        mDelayedStartTimeRemaining--;
+        UpdateDishwasherDisplay();
+    }
+    else
+    {
+        // If we are stopped, we should start running.
+        //
+        if (mState == OperationalStateEnum::kStopped)
+        {
+            mState = OperationalStateEnum::kRunning;
+            UpdateOperationState(mState);
+        }
+
+        if (mState == OperationalStateEnum::kRunning)
         {
             mRunningTimeRemaining--;
 
@@ -400,10 +428,6 @@ void DishwasherManager::ProgressProgram()
             }
 
             UpdateCurrentPhase(current_phase);
-        }
-        else
-        {
-            mDelayedStartTimeRemaining--;
         }
     }
 }
@@ -527,7 +551,12 @@ void DishwasherManager::HandleWheelClicked()
         return;
     }
 
-    if (mState == OperationalStateEnum::kStopped)
+    if (mIsProgramSelected)
+    {
+        StopProgram();
+        UpdateDishwasherDisplay();
+    }
+    else
     {
         mIsShowingMenu = !mIsShowingMenu;
         UpdateDishwasherDisplay();

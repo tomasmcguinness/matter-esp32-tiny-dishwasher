@@ -322,6 +322,7 @@ void StatusDisplay::ShowResetOptions()
     lv_obj_add_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mMenuButtonLabel, LV_OBJ_FLAG_HIDDEN);
 
     lv_obj_clear_flag(mResetMessageLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(mYesButtonLabel, LV_OBJ_FLAG_HIDDEN);
@@ -330,12 +331,12 @@ void StatusDisplay::ShowResetOptions()
 
 void StatusDisplay::HideResetOptions()
 {
-
     ESP_LOGI(TAG, "Hide reset options");
 
     lv_obj_clear_flag(mStateLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(mModeLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(mStatusLabel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(mMenuButtonLabel, LV_OBJ_FLAG_HIDDEN);
 
     lv_obj_add_flag(mResetMessageLabel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(mYesButtonLabel, LV_OBJ_FLAG_HIDDEN);

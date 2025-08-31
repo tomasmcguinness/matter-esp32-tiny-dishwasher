@@ -196,10 +196,20 @@ void DishwasherManager::StartProgram()
 
     sForecastStruct.forecastID = 0; // TODO This should change each time the forecast changes.
     sForecastStruct.startTime = unixEpoch + mDelayedStartTimeRemaining;
-    sForecastStruct.earliestStartTime = MakeOptional(unixEpoch);
     sForecastStruct.endTime = unixEpoch + mDelayedStartTimeRemaining + mRunningTimeRemaining;
-    sForecastStruct.latestEndTime = MakeOptional(unixEpoch + 43200 /* 12 hours */ );
-    sForecastStruct.isPausable = false; // We cannot pause any of the slots in this forecast.
+
+    if (mOptedIntoEnergyManagement)
+    {
+        sForecastStruct.earliestStartTime = MakeOptional(unixEpoch);
+        sForecastStruct.latestEndTime = MakeOptional(unixEpoch + 86400 /* 24 hours */);
+    }
+    else
+    {
+        sForecastStruct.earliestStartTime.ClearValue();
+        sForecastStruct.latestEndTime.ClearValue();
+    }
+    
+    sForecastStruct.isPausable = false;         // We cannot pause any of the slots in this forecast.
     sForecastStruct.activeSlotNumber.SetNull(); // TODO Change this accordingly as the program progresses.
 
     int32_t slot_count = 1;
@@ -250,24 +260,27 @@ void DishwasherManager::StartProgram()
 
 void DishwasherManager::AdjustStartTime(uint32_t new_start_time)
 {
-    // TODO If the program has started, we can't adjust the start time.
-    //
-    sForecastStruct.startTime = new_start_time;
-    sForecastStruct.endTime = new_start_time + ((30 + (mMode * 30)) * 60);
-    sForecastStruct.forecastUpdateReason = DeviceEnergyManagement::ForecastUpdateReasonEnum::kGridOptimization;
+    if (mOptedIntoEnergyManagement)
+    {
+        // TODO If the program has started, we can't adjust the start time.
+        //
+        sForecastStruct.startTime = new_start_time;
+        sForecastStruct.endTime = new_start_time + ((30 + (mMode * 30)) * 60);
+        sForecastStruct.forecastUpdateReason = DeviceEnergyManagement::ForecastUpdateReasonEnum::kGridOptimization;
 
-    // Update the delay.
-    //
-    System::Clock::Microseconds64 utcTime;
-    chip::System::SystemClock().GetClock_RealTime(utcTime);
+        // Update the delay.
+        //
+        System::Clock::Microseconds64 utcTime;
+        chip::System::SystemClock().GetClock_RealTime(utcTime);
 
-    time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
+        time_t unixEpoch = std::chrono::duration_cast<chip::System::Clock::Seconds32>(utcTime).count();
 
-    mDelayedStartTimeRemaining = new_start_time - unixEpoch;
+        mDelayedStartTimeRemaining = new_start_time - unixEpoch;
 
-    UpdateDishwasherDisplay();
+        UpdateDishwasherDisplay();
 
-    SetForecast();
+        SetForecast();
+    }
 }
 
 void DishwasherManager::PauseProgram()
@@ -656,16 +669,12 @@ void DishwasherManager::ClearForecast()
     ESP_LOGI(TAG, "DishwasherManager::ClearForecast()");
 
     sForecastStruct.startTime = 0;
-    sForecastStruct.endTime   = 0;
+    sForecastStruct.endTime = 0;
     sForecastStruct.earliestStartTime.ClearValue();
     sForecastStruct.latestEndTime.ClearValue();
     sForecastStruct.isPausable = false;
     sForecastStruct.activeSlotNumber.SetNull();
     sForecastStruct.slots = DataModel::List<const DeviceEnergyManagement::Structs::SlotStruct::Type>();
-
-    // chip::DeviceLayer::PlatformMgr().LockChipStack();
-    // device_energy_management_delegate.SetForecast(DataModel::MakeNullable(sForecastStruct));
-    // chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 
     SetForecast();
 }

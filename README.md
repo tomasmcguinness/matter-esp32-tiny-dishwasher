@@ -8,6 +8,10 @@ https://youtu.be/BGIULIQ3aqs
 I've pull all the blog posts I have written on this subject into a single place
 https://tomasmcguinness.com/tiny-matter-dishwasher/
 
+## Why?
+
+I'm really interested in the energy management aspect of the Matter protocol. There aren't any devices on the market to enable me to explore this protocol and besides, I'm not going to buy a new applicance for testing! Having this toy dishwasher will let me play around with how the energy management might work.
+
 ## Hardware
 
 It has two push buttons and one rotary encoder. Information is presented on an OLED screen.
@@ -21,10 +25,6 @@ You can turn the device on, choose a program and press start. The device will st
 This is a work in progress, so the implementation isn't perfect and might not fully align to the Matter specification (Dead Front behaviour for example - I don't ignore commands when the device is off)
 
 To reset the device, hold down to the On/Off button for 5 seconds and you'll see a prompt to "Reset the device". Click the appropriate button; On/Off for No, Start/Pause/Resume for Yes. This will reset the Matter fabric.
-
-## Why?
-
-I'm really interested in the energy management aspect of the Matter protocol. There aren't any devices on the market to enable me to explore this protocol and besides, I'm not going to buy a new applicance for testing! Having this toy dishwasher will let me play around with how the energy management might work.
 
 ## Wiring
 
